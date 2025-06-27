@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
  * Gère les utilisateurs, commandes, produits et livraisons.
  */
 
+
 @Service
 @Transactional
 public  class AdminServiceImpl implements AdminService {

@@ -11,8 +11,10 @@ import java.time.LocalDateTime;
  * Gère le processus d'expédition et de suivi.
  */
 @Entity
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "deliveries")
 public class Delivery {
 
@@ -47,109 +49,5 @@ public class Delivery {
 
     private LocalDateTime deliveryDate;
 
-    // Getters et Setters explicites
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public CustomOrder getOrder() {
-        return order;
-    }
-
-    public void setOrder(CustomOrder order) {
-        this.order = order;
-    }
-
-    public User getDeliverer() {
-        return deliverer;
-    }
-
-    public void setDeliverer(User deliverer) {
-        this.deliverer = deliverer;
-    }
-
-    public DeliveryStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(DeliveryStatus status) {
-        this.status = status;
-    }
-
-    public String getIssueDescription() {
-        return issueDescription;
-    }
-
-    public void setIssueDescription(String issueDescription) {
-        this.issueDescription = issueDescription;
-    }
-
-    public LocalDateTime getDeliveryDate() {
-        return deliveryDate;
-    }
-
-    public void setDeliveryDate(LocalDateTime deliveryDate) {
-        this.deliveryDate = deliveryDate;
-    }
-
-    // Builder manuel
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Long id;
-        private CustomOrder order;
-        private User deliverer;
-        private DeliveryStatus status;
-        private String issueDescription;
-        private LocalDateTime deliveryDate;
-
-        public Builder id(Long id) {
-            this.id = id;
-            return this;
-        }
-
-        public Builder order(CustomOrder order) {
-            this.order = order;
-            return this;
-        }
-
-        public Builder deliverer(User deliverer) {
-            this.deliverer = deliverer;
-            return this;
-        }
-
-        public Builder status(DeliveryStatus status) {
-            this.status = status;
-            return this;
-        }
-
-        public Builder issueDescription(String issueDescription) {
-            this.issueDescription = issueDescription;
-            return this;
-        }
-
-        public Builder deliveryDate(LocalDateTime deliveryDate) {
-            this.deliveryDate = deliveryDate;
-            return this;
-        }
-
-        public Delivery build() {
-            Delivery delivery = new Delivery();
-            delivery.setId(id);
-            delivery.setOrder(order);
-            delivery.setDeliverer(deliverer);
-            delivery.setStatus(status);
-            delivery.setIssueDescription(issueDescription);
-            delivery.setDeliveryDate(deliveryDate);
-            return delivery;
-        }
-    }
 }

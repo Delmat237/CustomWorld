@@ -12,8 +12,10 @@ import java.util.List;
  * Contient toutes les informations relatives à une transaction commerciale.
  */
 @Entity
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "custom_orders")
 public class CustomOrder {
 
@@ -53,109 +55,5 @@ public class CustomOrder {
      */
     private String deliveryAddress;
 
-    // Getters et Setters explicites
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(User customer) {
-        this.customer = customer;
-    }
-
-    public List<OrderItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<OrderItem> items) {
-        this.items = items;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public String getDeliveryAddress() {
-        return deliveryAddress;
-    }
-
-    public void setDeliveryAddress(String deliveryAddress) {
-        this.deliveryAddress = deliveryAddress;
-    }
-
-    // Builder manuel
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Long id;
-        private User customer;
-        private List<OrderItem> items;
-        private OrderStatus status;
-        private LocalDateTime orderDate;
-        private String deliveryAddress;
-
-        public Builder id(Long id) {
-            this.id = id;
-            return this;
-        }
-
-        public Builder customer(User customer) {
-            this.customer = customer;
-            return this;
-        }
-
-        public Builder items(List<OrderItem> items) {
-            this.items = items;
-            return this;
-        }
-
-        public Builder status(OrderStatus status) {
-            this.status = status;
-            return this;
-        }
-
-        public Builder orderDate(LocalDateTime orderDate) {
-            this.orderDate = orderDate;
-            return this;
-        }
-
-        public Builder deliveryAddress(String deliveryAddress) {
-            this.deliveryAddress = deliveryAddress;
-            return this;
-        }
-
-        public CustomOrder build() {
-            CustomOrder order = new CustomOrder();
-            order.setId(id);
-            order.setCustomer(customer);
-            order.setItems(items);
-            order.setStatus(status);
-            order.setOrderDate(orderDate);
-            order.setDeliveryAddress(deliveryAddress);
-            return order;
-        }
-    }
 }

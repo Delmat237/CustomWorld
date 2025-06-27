@@ -411,8 +411,8 @@ customworld-backend/
 ## Installation
 1. **Cloner le projet** :
    ```bash
-   git clone <repository-url>
-   cd customworld-backend
+   git clone https://github.com/Delmat237/CustomWorld.git
+   cd customworld
    ```
 
 2. **Configurer la base de données** :
