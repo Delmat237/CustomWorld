@@ -3,17 +3,33 @@
 CustomWorld Backend est une application Spring Boot conçue pour gérer une plateforme de personnalisation d'accessoires (souris, vêtements, sacs, etc.). Elle fournit une API RESTful sécurisée pour quatre types d'utilisateurs : clients, vendeurs, livreurs et administrateurs. L'application supporte l'authentification JWT, l'upload de fichiers, et une architecture scalable avec une base de données PostgreSQL.
 
 ## Table des matières
-1. [Fonctionnalités](#fonctionnalités)
-2. [Structure du projet](#structure-du-projet)
-3. [Prérequis](#prérequis)
-4. [Installation](#installation)
-5. [Configuration](#configuration)
-6. [Utilisation](#utilisation)
-7. [Documentation de l'API](#documentation-de-lapi)
-8. [Tests](#tests)
-9. [Déploiement](#déploiement)
-10. [Contribuer](#contribuer)
-11. [Licence](#licence)
+- [CustomWorld Backend](#customworld-backend)
+  - [Table des matières](#table-des-matières)
+  - [Fonctionnalités](#fonctionnalités)
+  - [Structure du projet](#structure-du-projet)
+    - [Description des dossiers](#description-des-dossiers)
+  - [Prérequis](#prérequis)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Utilisation](#utilisation)
+  - [Documentation de l'API](#documentation-de-lapi)
+  - [Tests](#tests)
+  - [Déploiement](#déploiement)
+- [CustomWorld Backend](#customworld-backend-1)
+  - [Table des matières](#table-des-matières-1)
+  - [Fonctionnalités](#fonctionnalités-1)
+  - [Structure du projet](#structure-du-projet-1)
+    - [Description des dossiers](#description-des-dossiers-1)
+  - [Prérequis](#prérequis-1)
+  - [Installation](#installation-1)
+  - [Configuration](#configuration-1)
+  - [Utilisation](#utilisation-1)
+  - [Documentation de l'API](#documentation-de-lapi-1)
+  - [Tests](#tests-1)
+  - [Déploiement](#déploiement-1)
+  - [Contribuer](#contribuer)
+  - [📬 Contact](#-contact)
+  - [Licence](#licence)
 
 ## Fonctionnalités
 - **Vue Client** :
@@ -526,5 +542,16 @@ customworld-backend/
 4. Poussez votre branche (`git push origin feature/nouvelle-fonctionnalite`).
 5. Créez un pull request.
 
+## 📬 Contact
+
+* Nom : Leonel Delmat
+
+* 📧 Email : azangueleonel9@gmail.com
+
+* 📱 WhatsApp : +237 657 450 314
+
+* GitHub : Delmat237
+
+* LinkedIn : Leonel Azangue
 ## Licence
 Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
