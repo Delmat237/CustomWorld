@@ -52,6 +52,10 @@ public class User {
      * Adresse physique principale
      */
     private String address;
+    /**
+     * Numro de telephone
+     */
 
+    private String phone;
 
 }
