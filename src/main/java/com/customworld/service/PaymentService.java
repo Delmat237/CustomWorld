@@ -27,7 +27,7 @@ public class PaymentService {
     private  String notchpayBaseUrl;
 
     //@Value("${notchpay.callback-url}")
-    private  String notchpayCallBackUrl="https://606387c15363.ngrok-free.app/api/payments/notify";
+    private  String notchpayCallBackUrl="https://customworld.onrender.com/api/payments/notify";
 
     private final RestTemplate restTemplate;
 
