@@ -9,4 +9,4 @@ RUN apt-get update && apt-get install -y maven && \
 
 EXPOSE 8081
 
-CMD ["java", "-jar", "target/CustomWorld-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/customworld-backend-0.0.1-SNAPSHOT.jar"]
