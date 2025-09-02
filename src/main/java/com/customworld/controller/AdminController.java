@@ -1,12 +1,22 @@
 package com.customworld.controller;
 
+import com.customworld.dto.request.RegisterRequest;
+import com.customworld.dto.response.ApiResponseWrapper;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.entity.User;
 import com.customworld.service.AdminService;
+import com.customworld.service.AuthService;
 import com.customworld.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+
+
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,15 +33,17 @@ public class AdminController {
 
     private final AdminService adminService ;
     private final ProductService productService;
+    private final AuthService authService;
 
     /**
      * Injection du service d'administration via le constructeur. 
      * @param adminService service métier pour la gestion admin
      * @param productService service métier pour la gestion des produits
      */
-    public AdminController(AdminService adminService, ProductService productService) {
+    public AdminController(AdminService adminService, ProductService productService,AuthService authService) {
         this.adminService = adminService;
         this.productService = productService;
+        this.authService = authService;
     }
 
 
@@ -47,15 +59,20 @@ public class AdminController {
     }
 
     /**
-     * Endpoint : POST /api/admin/users
-     * Description : Crée un nouvel utilisateur dans le système.
-     * @param user Objet utilisateur à créer (donné dans le corps de la requête)
-     * @return Utilisateur créé
+     * Inscrit un nouvel utilisateur et envoie un email de bienvenue.
+     *
+     * @param registerRequest Objet contenant les informations d'inscription (nom, email, mot de passe, etc.).
+     * @return ResponseEntity contenant un message de succès.
      */
+    @Operation(summary = "Inscription d'un utilisateur par un user ", description = "Crée un nouveau compte utilisateur et envoie un email de bienvenue.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Utilisateur créé avec succès"),
+            @ApiResponse(responseCode = "400", description = "Email déjà utilisé ou données invalides")
+    })
     @PostMapping("/users")
-    @Operation(summary = "Crée un nouvel utilisateur dans le système.")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-            return ResponseEntity.ok( adminService.createUser(user));
+    public ResponseEntity<ApiResponseWrapper> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        authService.register(registerRequest);
+        return ResponseEntity.ok(new ApiResponseWrapper(true, "Utilisateur créé avec succès"));
     }
 
     /**

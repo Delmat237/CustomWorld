@@ -66,7 +66,8 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
     }
 
-    private ProductResponse convertToProductResponse(Product product) {
+     private ProductResponse convertToProductResponse(Product product) {
+        log.info("Converting product to response: {}", product);
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -81,6 +82,8 @@ public class ProductServiceImpl implements ProductService {
                 .rating(product.getRating())
                 .color(product.getColor())
                 .reviews(product.getReviews())
+                .isOnSale(product.isOnSale())
                 .build();
     }
+
 }

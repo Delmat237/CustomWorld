@@ -15,6 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import  com.customworld.repository.UserRepository;
+
+import com.customworld.entity.User;
+import com.utils.UserInterceptor;
+
 import java.util.List;
 
 /**
@@ -30,6 +35,7 @@ public class CustomerController {
     private final CustomerService customerService;
     private final CartService cartService;
     private final ProductService productService;
+    private final UserRepository userRepository;
 
 
 
@@ -39,10 +45,12 @@ public class CustomerController {
      * @param productService Service metier pour la gestion des operations ssur les produits
      * @param customerService Service métier pour la gestion des opérations clients
      */
-    public CustomerController(CustomerService customerService,CartService cartService, ProductService productService) {
+    public CustomerController(CustomerService customerService,CartService cartService, ProductService productService,UserRepository userRepository) {
         this.customerService = customerService;
         this.cartService = cartService;
         this.productService = productService;
+        this.userRepository = userRepository;
+
     }
 
     /**
@@ -64,25 +72,34 @@ public class CustomerController {
 
     @GetMapping("/cart")
     @Operation(summary = "Récupère le panier d’un client")
-    public ResponseEntity<CartResponse> getCart(@RequestParam Long userId) {
+    public ResponseEntity<CartResponse> getCart() {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long userId = user.getId();
         return ResponseEntity.ok(cartService.getCartByUser(userId));
     }
 
     @PostMapping("/cart/add")
     @Operation(summary = "Ajoute un produit au panier")
-    public ResponseEntity<CartResponse> addToCart(@RequestParam Long userId, @RequestParam Long productId, @RequestParam int quantity) {
+    public ResponseEntity<CartResponse> addToCart( @RequestParam Long productId, @RequestParam int quantity) {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long userId = user.getId();
+       
         return ResponseEntity.ok(cartService.addToCart(userId, productId, quantity));
     }
 
     @DeleteMapping("/cart/remove/{cartItemId}")
     @Operation(summary = "Supprime un article du panier")
-    public ResponseEntity<CartResponse> removeFromCart(@RequestParam Long userId, @PathVariable Long cartItemId) {
+    public ResponseEntity<CartResponse> removeFromCart( @PathVariable Long cartItemId) {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long userId = user.getId();
         return ResponseEntity.ok(cartService.removeFromCart(userId, cartItemId));
     }
 
     @PutMapping("/cart/update/{cartItemId}")
     @Operation(summary = "Met à jour la quantité d’un article dans le panier")
-    public ResponseEntity<CartResponse> updateCartItemQuantity(@RequestParam Long userId, @PathVariable Long cartItemId, @RequestParam int quantity) {
+    public ResponseEntity<CartResponse> updateCartItemQuantity(@PathVariable Long cartItemId, @RequestParam int quantity) {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long userId = user.getId();
         return ResponseEntity.ok(cartService.updateCartItemQuantity(userId, cartItemId, quantity));
     }
 
@@ -122,13 +139,17 @@ public class CustomerController {
      */
     @Operation(summary = "Récupère la liste des commandes passées par un client spécifique.")
     @GetMapping("/orders")
-    public ResponseEntity<List<OrderResponse>> getCustomerOrders(@RequestParam Long customerId) {
+    public ResponseEntity<List<OrderResponse>> getCustomerOrders() {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long customerId = user.getId();
         return ResponseEntity.ok(customerService.getOrdersByCustomer(customerId));
     }
 
 @GetMapping("/context")
 @Operation(summary = "Récupère les catégories, les produits et le panier du client")
-public ResponseEntity<ContextResponse> getCustomerContext(@RequestParam Long userId, @RequestParam(required = false) String category) {
+public ResponseEntity<ContextResponse> getCustomerContext(@RequestParam(required = false) String category) {
+    User user = UserInterceptor.getAuthenticatedUser(userRepository);
+    Long userId = user.getId();
     List<CategoryResponse> categories = productService.getAllCategories();
     List<ProductResponse> products = category != null
             ? productService.getProductsByCategory(category)

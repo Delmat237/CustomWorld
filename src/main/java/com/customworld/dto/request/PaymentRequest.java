@@ -1,18 +1,20 @@
 package com.customworld.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/**
- * DTO pour initier un paiement via CinetPay.
- */
+import com.customworld.enums.ChannelOption;
 @Data
 public class PaymentRequest {
-    private String amount;
-    private String currency;
+    @NotNull
+    private Integer amount;
     private String description;
     private String customerName;
+    private String customerSurname;
+    private String customerPhoneNumber;
     private String customerEmail;
-    private String customerPhone;
-    private String paymentMethod; // Ex. "OMCI" pour Orange Money CI, "MOMO" pour MTN Mobile Money CI
-    private Long productId; // ID du produit associé
+    private String channelOption;
+    private String customerAddress;
+    private String customerCity;
+    private String customerZipCode;
 }

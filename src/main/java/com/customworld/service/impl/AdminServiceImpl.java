@@ -177,16 +177,23 @@ public  class AdminServiceImpl implements AdminService {
      * @param product Produit à convertir
      * @return ProductResponse DTO converti
      */
-    private ProductResponse convertToProductResponse(Product product) {
+     private ProductResponse convertToProductResponse(Product product) {
+        log.info("Converting product to response: {}", product);
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
+                .originalPrice(product.getOriginalPrice())
                 .category(product.getCategory().getName())
                 .vendorId(product.getVendor().getId())
                 .imagePath(product.getImagePath())
-                .approved(product.isApproved()) // Nouveau champ
+                .approved(product.isApproved())
+                .isNew(product.isNew())
+                .rating(product.getRating())
+                .color(product.getColor())
+                .reviews(product.getReviews())
+                .isOnSale(product.isOnSale())
                 .build();
     }
 

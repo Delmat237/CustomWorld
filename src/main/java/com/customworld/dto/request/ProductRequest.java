@@ -29,7 +29,7 @@ public class ProductRequest {
     @NotBlank
     private String category;
 
-    @NotNull
+    //@NotNull
     private Long vendorId;
 
     private String imagePath;
@@ -44,6 +44,10 @@ public class ProductRequest {
      * isnew
      */
     private boolean isNew;
+    /*
+    * en promotion ou pas
+    */
+    private boolean isOnSale;
 
      /*
       * rating

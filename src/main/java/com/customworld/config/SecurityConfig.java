@@ -53,6 +53,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Autoriser toutes les requêtes OPTIONS
                 .requestMatchers(AUTH_WHITELIST).permitAll()
+                .requestMatchers("/api/payments/notify").permitAll() // Autoriser explicitement /api/payments/notify
                 .requestMatchers("/api/customer/**").hasAnyRole("CUSTOMER", "ADMIN")
                 .requestMatchers("/api/vendor/**").hasAnyRole("VENDOR", "ADMIN")
                 .requestMatchers("/api/delivery/**").hasAnyRole("DELIVERER", "ADMIN")

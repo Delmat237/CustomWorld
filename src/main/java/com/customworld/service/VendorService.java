@@ -16,8 +16,7 @@ public interface VendorService {
     List<ProductResponse> getVendorProducts(Pageable pageable);
     ProductResponse updateProduct(Long productId, ProductRequest productRequest);
     void deleteProduct(Long productId);
-    List<OrderResponse> getVendorOrders();
     OrderResponse updateOrderStatus(Long orderId, OrderStatus status);
     Object getVendorStatistics();
-    
+    ProductResponse getProductById(Long id);
 }

@@ -10,7 +10,9 @@ public enum OrderStatus {
     COMPLETED,      // Terminée
     SHIPPED,        // Expédiée
     DELIVERED,      // Livrée
-    CANCELLED  ;    // Annulée
+    CANCELLED,    // Annulée
+    PAID,           // Payée
+    FAILED; // Échec du paiement
 
     public boolean canBeCancelled() {
         return this == PENDING || this == IN_PROGRESS;

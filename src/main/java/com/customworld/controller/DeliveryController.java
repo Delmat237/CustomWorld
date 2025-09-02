@@ -2,11 +2,18 @@ package com.customworld.controller;
 
 import com.customworld.dto.response.DeliveryResponse;
 import com.customworld.entity.Delivery;
+import com.customworld.entity.User;
 import com.customworld.service.DeliveryService;
+import com.utils.UserInterceptor;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.customworld.repository.UserRepository;
+import com.customworld.entity.User;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,14 +28,16 @@ import java.util.stream.Collectors;
 public class DeliveryController {
 
     private final DeliveryService deliveryService;
+    private final UserRepository userRepository;
 
     /**
      * Constructs a DeliveryController with required dependencies.
      *
      * @param deliveryService Service layer component for delivery operations
      */
-    public DeliveryController(DeliveryService deliveryService) {
+    public DeliveryController(DeliveryService deliveryService, UserRepository userRepository) {
         this.deliveryService = deliveryService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -39,7 +48,9 @@ public class DeliveryController {
      */
     @Operation(summary = "Retrieves all deliveries associated with a specific deliverer.")
     @GetMapping("/deliveries")
-    public ResponseEntity<List<DeliveryResponse>> getDelivererDeliveries(@RequestParam Long delivererId) {
+    public ResponseEntity<List<DeliveryResponse>> getDelivererDeliveries() {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long delivererId = user.getId();
         List<Delivery> deliveries = deliveryService.getDeliveriesByDeliverer(delivererId);
         List<DeliveryResponse> response = deliveries.stream().map(this::convertToDeliveryResponse).collect(Collectors.toList());
         return ResponseEntity.ok(response);

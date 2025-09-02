@@ -18,6 +18,8 @@ import com.customworld.service.VendorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,11 +60,8 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     public ProductResponse createProduct(ProductRequest productRequest) {
-        User vendor = userRepository.findById(productRequest.getVendorId())
-                .orElseThrow(() -> {
-                    log.error("Vendor not found with ID: {}", productRequest.getVendorId());
-                    return new ResourceNotFoundException("Vendeur non trouvé");
-                });
+        //Recuperation de l'Utilisateur à partie du token
+        User vendor = com.utils.UserInterceptor.getAuthenticatedUser(userRepository);
 
         Category category = categoryRepository.findByName(productRequest.getCategory())
                 .orElseGet(() -> createNewCategory(productRequest.getCategory()));
@@ -79,11 +78,19 @@ public class VendorServiceImpl implements VendorService {
                 .rating(productRequest.getRating())
                 .color(productRequest.getColor())
                 .reviews(productRequest.getReviews())
+                .isOnSale(productRequest.isOnSale())
                 .build();
 
         product = productRepository.save(product);
         log.info("Product created with ID: {}", product.getId());
 
+        return convertToProductResponse(product);
+    }
+
+    @Override
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produit non trouvé"));
         return convertToProductResponse(product);
     }
 
@@ -118,6 +125,24 @@ public class VendorServiceImpl implements VendorService {
                     return new ResourceNotFoundException("Produit non trouvé");
                 });
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.error("Utilisateur non authentifié");
+            throw new ResourceNotFoundException("Utilisateur non authentifié");
+        }
+
+        String email = authentication.getName();
+        User vendor = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("Vendor not found with email: {}", email);
+                    return new ResourceNotFoundException("Vendeur non trouvé");
+                });
+
+        if (!product.getVendor().getId().equals(vendor.getId())) {
+            log.error("Unauthorized update attempt on product {} by vendor {}", productId, vendor.getId());
+            throw new ResourceNotFoundException("Vous n'êtes pas autorisé à modifier ce produit");
+        }
+
         if (!product.getCategory().getName().equals(productRequest.getCategory())) {
             Category category = categoryRepository.findByName(productRequest.getCategory())
                     .orElseGet(() -> createNewCategory(productRequest.getCategory()));
@@ -129,10 +154,12 @@ public class VendorServiceImpl implements VendorService {
         product.setPrice(productRequest.getPrice());
         product.setOriginalPrice(productRequest.getOriginalPrice());
         product.setImagePath(productRequest.getImagePath());
-        //product.setIsNew(productRequest.isNew());
+        product.setNew(productRequest.isNew());
         product.setRating(productRequest.getRating());
         product.setColor(productRequest.getColor());
         product.setReviews(productRequest.getReviews());
+        product.setOnSale(productRequest.isOnSale());
+        
 
         product = productRepository.save(product);
         log.info("Product updated: {}", productId);
@@ -142,28 +169,61 @@ public class VendorServiceImpl implements VendorService {
 
     @Override
     public void deleteProduct(Long productId) {
-        if (!productRepository.existsById(productId)) {
-            log.error("Attempt to delete non-existing product: {}", productId);
-            throw new ResourceNotFoundException("Produit non trouvé");
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> {
+                    log.error("Attempt to delete non-existing product: {}", productId);
+                    return new ResourceNotFoundException("Produit non trouvé");
+                });
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.error("Utilisateur non authentifié");
+            throw new ResourceNotFoundException("Utilisateur non authentifié");
         }
+
+        String email = authentication.getName();
+        User vendor = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("Vendor not found with email: {}", email);
+                    return new ResourceNotFoundException("Vendeur non trouvé");
+                });
+
+        if (!product.getVendor().getId().equals(vendor.getId())) {
+            log.error("Unauthorized delete attempt on product {} by vendor {}", productId, vendor.getId());
+            throw new ResourceNotFoundException("Vous n'êtes pas autorisé à supprimer ce produit");
+        }
+
         productRepository.deleteById(productId);
         log.info("Product deleted: {}", productId);
     }
 
-    @Override
-    public List<OrderResponse> getVendorOrders() {
-        return orderRepository.findAll().stream()
-                .filter(order -> order.getProduct().getVendor() != null)
-                .map(this::convertToOrderResponse)
-                .collect(Collectors.toList());
-    }
 
+
+    @Override
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> {
                     log.error("Order not found: {}", orderId);
                     return new ResourceNotFoundException("Commande non trouvée");
                 });
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.error("Utilisateur non authentifié");
+            throw new ResourceNotFoundException("Utilisateur non authentifié");
+        }
+
+        String email = authentication.getName();
+        User vendor = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("Vendor not found with email: {}", email);
+                    return new ResourceNotFoundException("Vendeur non trouvé");
+                });
+
+        if (!order.getProduct().getVendor().getId().equals(vendor.getId())) {
+            log.error("Unauthorized update attempt on order {} by vendor {}", orderId, vendor.getId());
+            throw new ResourceNotFoundException("Vous n'êtes pas autorisé à modifier cette commande");
+        }
 
         order.setStatus(status);
         order.setUpdatedAt(Instant.now());
@@ -195,6 +255,7 @@ public class VendorServiceImpl implements VendorService {
                 .rating(product.getRating())
                 .color(product.getColor())
                 .reviews(product.getReviews())
+                .isOnSale(product.isOnSale())
                 .build();
     }
 
@@ -218,5 +279,4 @@ public class VendorServiceImpl implements VendorService {
         return newCategory;
     }
 
-  
 }

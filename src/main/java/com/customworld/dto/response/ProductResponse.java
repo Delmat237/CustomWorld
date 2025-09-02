@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.List;
+import java.time.Instant;
 /**
  * DTO représentant la réponse d'un produit.
  * Contient les informations principales d'un produit pour la communication avec le client.
@@ -28,6 +29,9 @@ public class ProductResponse {
     private boolean isNew;
      private Integer rating;
       private Integer reviews;
+      private boolean isOnSale;
+    private Instant createdAt;
+    private Instant updatedAt;
 
 
 }

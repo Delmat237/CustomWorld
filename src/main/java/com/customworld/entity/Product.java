@@ -3,6 +3,8 @@ package com.customworld.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
+
+import java.time.Instant;
 /**
  * Représente un produit commercialisé sur la plateforme.
  * Peut être associé à un vendeur et une catégorie.
@@ -79,6 +81,9 @@ public class Product {
     @Builder.Default
     private boolean isNew = true;
 
+    @Builder.Default
+    private boolean isOnSale= false;
+
      /*
       * rating
       */
@@ -87,4 +92,23 @@ public class Product {
        * reviews
        */
       private Integer reviews;
+
+    @Column(name = "created_at")
+    @Builder.Default
+    private Instant createdAt = Instant.now();
+
+    @Column(name = "updated_at")
+    @Builder.Default
+    private Instant updatedAt= Instant.now();
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

@@ -1,14 +1,15 @@
 package com.customworld.dto.response;
 
-import lombok.Data;
+import lombok.*;
 
-/**
- * DTO pour la réponse d'un paiement via CinetPay.
- */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PaymentResponse {
-    private boolean success;
+    private String status;
     private String message;
-    private String transactionId;
-    private String paymentUrl; // URL de paiement redirigée
+    private Integer code;
+    private Object transaction; // Pour capturer l'objet transaction complet
+    private String authorization_url; // Pour capturer l'URL d'autorisation
 }
