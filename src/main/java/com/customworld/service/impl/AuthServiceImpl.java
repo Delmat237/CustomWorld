@@ -98,6 +98,7 @@ public class AuthServiceImpl implements AuthService {
             emailService.sendEmail(
                     user.getEmail(),
                      "Bienvenue sur Custom W🌍rld", 
+                     "Bienvenue sur Custom W🌍rld",
         "Bienvenue sur Custom W🌍rld, " + user.getName() + "\n\n Entrez dans l’univers de la customisation sans limites! Votre accessoire, votre style, votre signature. !\n\n Votre compte a été créé avec succès."
             );
 
