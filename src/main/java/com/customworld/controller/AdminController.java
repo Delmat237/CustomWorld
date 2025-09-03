@@ -123,6 +123,23 @@ public class AdminController {
     public ResponseEntity<List<ProductResponse>> getProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
+    /**
+     * GET /api/vendor/products/{id}
+     * Récupère un produit spécifique par son identifiant.
+     *
+     * @param id Identifiant du produit.
+     * @return Produit sous forme de ProductResponse.
+     */
+    @Operation(summary = "Récupère un produit spécifique par son identifiant.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produit récupéré avec succès"),
+            @ApiResponse(responseCode = "404", description = "Produit non trouvé")
+    })
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(vendorService.getProductById(id));
+    }
+
 
         /**
      * DELETE /api/admin/products/{productId}
