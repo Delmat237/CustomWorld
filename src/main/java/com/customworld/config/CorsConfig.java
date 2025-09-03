@@ -14,7 +14,7 @@ public class CorsConfig {
    @Bean
    public CorsFilter corsFilter() {
        CorsConfiguration corsConfiguration = new CorsConfiguration();
-       corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3002","http://localhost:3001","http://localhost:3000"));
+       corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:3002","http://localhost:3001","http://localhost:3000","https://customworld.vercel.app"));
        corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE","OPTIONS"));
        corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
        corsConfiguration.setAllowCredentials(true);
