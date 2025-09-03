@@ -123,4 +123,25 @@ public class AdminController {
     public ResponseEntity<List<ProductResponse>> getProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
+
+        /**
+     * DELETE /api/admin/products/{productId}
+     * Supprime un produit existant.
+     *
+     * @param productId Identifiant du produit à supprimer.
+     * @return ResponseEntity sans contenu.
+     */
+    @Operation(summary = "Supprime un produit existant.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produit supprimé avec succès"),
+            @ApiResponse(responseCode = "404", description = "Produit non trouvé")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/products/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+        adminService.deleteProduct(productId);
+        return ResponseEntity.ok().build();
+    }
+
+   
 }

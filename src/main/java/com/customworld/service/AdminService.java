@@ -19,6 +19,6 @@ public interface AdminService {
     List<UserResponse> getUsersByRole(UserRole role);
 
     Object getDashboardStatistics();
-
+    void deleteProduct(Long productId);
     void assignDeliveryPerson(Long orderId, Long deliveryPersonId);
 }
