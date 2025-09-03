@@ -112,10 +112,10 @@ public class AdminController {
     }
 
      /**
-     * GET /api/vendor/products?vendorId={vendorId}
-     * Récupère la liste des produits d’un vendeur spécifique.
+     * GET /api/admin/products
+     * Récupère la liste des produits 
      *
-     * @param vendorId Identifiant du vendeur.
+
      * @return Liste des produits sous forme de ProductResponse.
      */
     @Operation(summary = "Récupère la liste des produits .")
@@ -136,7 +136,6 @@ public class AdminController {
             @ApiResponse(responseCode = "200", description = "Produit supprimé avec succès"),
             @ApiResponse(responseCode = "404", description = "Produit non trouvé")
     })
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/products/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
         adminService.deleteProduct(productId);
