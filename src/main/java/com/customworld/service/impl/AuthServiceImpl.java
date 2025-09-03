@@ -97,8 +97,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             emailService.sendEmail(
                     user.getEmail(),
-                    "Bienvenue sur CustomWorld",
-                    "Bonjour " + user.getName() + ",\n\nVotre compte a été créé avec succès. Bienvenue sur CustomWorld !"
+                    "Bienvenue sur Custom W🌍rld, " + user.getName() + " Entrez dans l’univers de la customisation sans limites! Votre accessoire, votre style, votre signature. ! Votre compte a été créé avec succès."
             );
 
         } catch (Exception e) {
