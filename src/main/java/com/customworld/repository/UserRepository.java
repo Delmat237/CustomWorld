@@ -12,7 +12,6 @@ import com.customworld.entity.User;
 import com.customworld.enums.UserRole;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Repository pour l'entité User
