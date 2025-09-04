@@ -202,5 +202,20 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+ /**
+     * GET /api/admin/statistics
+     * Récupère les statistiques liées
+     *
+     * @return Objet contenant les statistiques .
+     */
+    @Operation(summary = "Récupère les statistiques")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Statistiques récupérées")
+    })
+
+    @GetMapping("/statistics")
+    public ResponseEntity<Object> getVendorStatistics() {
+        return ResponseEntity.ok(adminService.getDashboardStatistics());
+    }
    
 }
