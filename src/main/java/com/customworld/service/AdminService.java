@@ -20,5 +20,6 @@ public interface AdminService {
 
     Object getDashboardStatistics();
     void deleteProduct(Long productId);
+    void deleteUser(Long userId);
     void assignDeliveryPerson(Long orderId, Long deliveryPersonId);
 }

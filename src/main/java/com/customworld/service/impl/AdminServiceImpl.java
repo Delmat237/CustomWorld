@@ -250,6 +250,32 @@ public  class AdminServiceImpl implements AdminService {
         log.info("Product deleted: {}", productId);
     }
 
+    @Override
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("Attempt to delete non-existing product: {}", userId);
+                    return new ResourceNotFoundException("Utilisateur non trouvé");
+                });
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.error("Utilisateur non authentifié");
+            throw new ResourceNotFoundException("Utilisateur non authentifié");
+        }
+
+        String email = authentication.getName();
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("Admin not found with email: {}", email);
+                    return new ResourceNotFoundException("Admin non trouvé");
+                });
+
+
+        userRepository.deleteById(userId);
+        log.info("User  deleted: {}", userId);
+    }
+
 
     @Override
     public Object getDashboardStatistics(){

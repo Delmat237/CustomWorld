@@ -1,5 +1,6 @@
 package com.customworld.controller;
 
+import com.customworld.dto.request.ProductRequest;
 import com.customworld.dto.request.RegisterRequest;
 import com.customworld.dto.response.ApiResponseWrapper;
 import com.customworld.dto.response.OrderResponse;
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -90,11 +92,33 @@ public class AdminController {
             @ApiResponse(responseCode = "200", description = "Utilisateur supprimé avec succès"),
             @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
     })
-    @DeleteMapping("/products/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
-        adminService.deleteProduct(productId);
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        adminService.deleteUser(userId);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * PUT /api/admin/users/{userId}
+     * Met à jour les informations d’un User existant.
+     *
+     * @param userId Identifiant du produit à mettre à jour.
+     * @param productRequest Nouvelles données du produit.
+     * @return Produit mis à jour sous forme de ProductResponse.
+     */
+    @Operation(summary = "Met à jour les informations d’un produit existant.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produit mis à jour avec succès"),
+            @ApiResponse(responseCode = "404", description = "Produit non trouvé")
+    })
+    @PreAuthorize("hasRole('VENDOR')")
+    @PutMapping("/products/{productId}")
+    public ResponseEntity<ProductResponse> updateProduct(
+            @PathVariable Long productId,
+            @RequestBody ProductRequest productRequest) {
+        return ResponseEntity.ok(vendorService.updateProduct(productId, productRequest));
+    }
+
     /**
      * Endpoint : GET /api/admin/orders
      * Description : Récupère la liste de toutes les commandes.
