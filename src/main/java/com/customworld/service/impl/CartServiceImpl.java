@@ -61,7 +61,6 @@ public class CartServiceImpl implements CartService {
                             .cart(cart)
                             .product(product)
                             .quantity(0)
-                            .imagePath(product.getImagePath())
                             .build();
                     cart.getItems().add(newItem);
                     return newItem;
