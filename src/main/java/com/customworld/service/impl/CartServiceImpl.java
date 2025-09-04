@@ -61,6 +61,7 @@ public class CartServiceImpl implements CartService {
                             .cart(cart)
                             .product(product)
                             .quantity(0)
+                            .imagePath(product.getImagePath())
                             .build();
                     cart.getItems().add(newItem);
                     return newItem;
@@ -117,6 +118,7 @@ public class CartServiceImpl implements CartService {
                                 .productName(item.getProduct().getName())
                                 .price(item.getProduct().getPrice())
                                 .quantity(item.getQuantity())
+                                .imagePath(item.getImagePath())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
