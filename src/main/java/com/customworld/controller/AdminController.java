@@ -8,6 +8,7 @@ import com.customworld.entity.User;
 import com.customworld.service.AdminService;
 import com.customworld.service.AuthService;
 import com.customworld.service.ProductService;
+import com.customworld.service.VendorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -34,16 +35,18 @@ public class AdminController {
     private final AdminService adminService ;
     private final ProductService productService;
     private final AuthService authService;
+    private final VendorService vendorService;
 
     /**
      * Injection du service d'administration via le constructeur. 
      * @param adminService service métier pour la gestion admin
      * @param productService service métier pour la gestion des produits
      */
-    public AdminController(AdminService adminService, ProductService productService,AuthService authService) {
+    public AdminController(AdminService adminService, ProductService productService,AuthService authService,VendorService vendorService) {
         this.adminService = adminService;
         this.productService = productService;
         this.authService = authService;
+        this.vendorService = vendorService;
     }
 
 
@@ -75,6 +78,23 @@ public class AdminController {
         return ResponseEntity.ok(new ApiResponseWrapper(true, "Utilisateur créé avec succès"));
     }
 
+      /**
+     * DELETE /api/admin/user/{userId}
+     * Supprime un utilisateur existant.
+     *
+     * @param userId Identifiant du user à supprimer.
+     * @return ResponseEntity sans contenu.
+     */
+    @Operation(summary = "Supprime un utilisateur existant.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Utilisateur supprimé avec succès"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
+    })
+    @DeleteMapping("/products/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+        adminService.deleteProduct(productId);
+        return ResponseEntity.ok().build();
+    }
     /**
      * Endpoint : GET /api/admin/orders
      * Description : Récupère la liste de toutes les commandes.
