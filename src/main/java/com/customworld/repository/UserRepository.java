@@ -11,6 +11,9 @@ import org.springframework.stereotype.Repository;
 import com.customworld.entity.User;
 import com.customworld.enums.UserRole;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 /**
  * Repository pour l'entité User
  */
@@ -29,4 +32,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
     Long countByRole(@Param("role") UserRole role);
+
+   long countByCreatedAtAfter(LocalDate startOfMonth);
 }

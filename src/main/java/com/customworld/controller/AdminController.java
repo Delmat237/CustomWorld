@@ -1,11 +1,11 @@
 package com.customworld.controller;
 
-import com.customworld.dto.request.ProductRequest;
 import com.customworld.dto.request.RegisterRequest;
 import com.customworld.dto.response.ApiResponseWrapper;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.entity.User;
+import com.customworld.enums.UserRole;
 import com.customworld.service.AdminService;
 import com.customworld.service.AuthService;
 import com.customworld.service.ProductService;
@@ -20,7 +20,6 @@ import jakarta.validation.Valid;
 
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -103,20 +102,20 @@ public class AdminController {
      * Met à jour les informations d’un User existant.
      *
      * @param userId Identifiant du produit à mettre à jour.
-     * @param productRequest Nouvelles données du produit.
-     * @return Produit mis à jour sous forme de ProductResponse.
+     * @param role Nouvelles  role
+     * @return 
      */
-    @Operation(summary = "Met à jour les informations d’un produit existant.")
+    @Operation(summary = "Met à jour le role d’un utilisateur existant.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Produit mis à jour avec succès"),
-            @ApiResponse(responseCode = "404", description = "Produit non trouvé")
+            @ApiResponse(responseCode = "200", description = "Utilisateur mis à jour avec succès"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
     })
-    @PreAuthorize("hasRole('VENDOR')")
-    @PutMapping("/products/{productId}")
-    public ResponseEntity<ProductResponse> updateProduct(
-            @PathVariable Long productId,
-            @RequestBody ProductRequest productRequest) {
-        return ResponseEntity.ok(vendorService.updateProduct(productId, productRequest));
+    @PutMapping("/user/{userId}")
+    public ResponseEntity<Void> updateUser(
+            @PathVariable Long userId,
+            @RequestBody UserRole role) {
+                adminService.updateUser(userId, role);
+        return ResponseEntity.ok().build();
     }
 
     /**

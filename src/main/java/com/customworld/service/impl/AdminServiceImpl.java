@@ -25,9 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.time.LocalDate;
+import java.util.Map;
 /**
  * Service d'implémentation pour les opérations administratives.
  * Gère les utilisateurs, commandes, produits et livraisons.
@@ -78,6 +81,22 @@ public  class AdminServiceImpl implements AdminService {
         log.info("Admin created user: {}", savedUser.getId());
         return savedUser;
     }
+
+    
+       @Override
+       public void updateUser(Long userId, UserRole role){
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("Utilisateur not found for assignment: {}", userId);
+                    return new ResourceNotFoundException("Utilisateur non trouvée");
+                });
+            
+                user.setRole(role);
+                userRepository.save(user);
+
+          log.info("User's Role {} status updated to {}  ", userId, role);
+       }
+
 
     /**
      * Récupère toutes les commandes.
@@ -274,16 +293,44 @@ public  class AdminServiceImpl implements AdminService {
 
         userRepository.deleteById(userId);
         log.info("User  deleted: {}", userId);
-    }
+}
 
+@Override
+public Object getDashboardStatistics() {
+    // Initialisation des statistiques
+    Map<String, Object> statistics = new HashMap<>();
 
-    @Override
-    public Object getDashboardStatistics(){
+    // Total des produits
+    long totalProducts = productRepository.count();
+    statistics.put("totalProducts", totalProducts);
 
-        // TODO: Implémenter la logique réelle ici
-        return null;
-    }
-    
+    // Statistiques par catégorie
+    List<Object[]> categoryStats = productRepository.countByCategory();
+    List<Map<String, Object>> categories = categoryStats.stream()
+            .map(row -> {
+                Map<String, Object> categoryMap = new HashMap<>();
+                categoryMap.put("category", row[0].toString());
+                categoryMap.put("count", ((Number) row[1]).longValue());
+                return categoryMap;
+            })
+            .collect(Collectors.toList());
+    statistics.put("categories", categories);
+
+    // Nombre de produits en promotion
+    long onSaleProducts = productRepository.countByIsOnSaleTrue();
+    statistics.put("onSaleProducts", onSaleProducts);
+
+    // Nouveaux utilisateurs ce mois-ci
+    LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+    long newUsersThisMonth = userRepository.countByCreatedAtAfter(startOfMonth);
+    statistics.put("newUsersThisMonth", newUsersThisMonth);
+
+    // Total des utilisateurs
+    long totalUsers = userRepository.count();
+    statistics.put("totalUsers", totalUsers);
+
+    return statistics;
+}
 
     @Override
     public   void assignDeliveryPerson(Long orderId, Long deliveryPersonId){}
