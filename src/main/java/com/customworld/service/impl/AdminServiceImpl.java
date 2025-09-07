@@ -1,8 +1,10 @@
 package com.customworld.service.impl;
 
+import com.customworld.dto.request.ProductRequest;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.dto.response.UserResponse;
+import com.customworld.entity.Category;
 import com.customworld.entity.CustomOrder;
 import com.customworld.entity.Delivery;
 import com.customworld.entity.Product;
@@ -11,6 +13,7 @@ import com.customworld.enums.DeliveryStatus;
 import com.customworld.enums.OrderStatus;
 import com.customworld.enums.UserRole;
 import com.customworld.exception.ResourceNotFoundException;
+import com.customworld.repository.CategoryRepository;
 import com.customworld.repository.CustomOrderRepository;
 import com.customworld.repository.DeliveryRepository;
 import com.customworld.repository.ProductRepository;
@@ -44,6 +47,7 @@ public  class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final CustomOrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
     private final DeliveryRepository deliveryRepository;
     private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
 
@@ -51,11 +55,13 @@ public  class AdminServiceImpl implements AdminService {
     public AdminServiceImpl(UserRepository userRepository,
                             CustomOrderRepository orderRepository,
                             ProductRepository productRepository,
-                            DeliveryRepository deliveryRepository) {
+                            DeliveryRepository deliveryRepository,
+                            CategoryRepository categoryRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.deliveryRepository = deliveryRepository;
+        this.categoryRepository = categoryRepository;
     }
     /**
      * Récupère tous les utilisateurs.
@@ -173,6 +179,52 @@ public  class AdminServiceImpl implements AdminService {
         return convertToProductResponse(product);
     }
 
+    @Override
+    public ProductResponse updateProduct(Long productId, ProductRequest productRequest) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> {
+                    log.error("Product not found for update: {}", productId);
+                    return new ResourceNotFoundException("Produit non trouvé");
+                });
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            log.error("Utilisateur non authentifié");
+            throw new ResourceNotFoundException("Utilisateur non authentifié");
+        }
+
+        String email = authentication.getName();
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("Admin not found with email: {}", email);
+                    return new ResourceNotFoundException("Admin non trouvé");
+                });
+
+    
+
+        if (!product.getCategory().getName().equals(productRequest.getCategory())) {
+            Category category = categoryRepository.findByName(productRequest.getCategory())
+                    .orElseGet(() -> createNewCategory(productRequest.getCategory()));
+            product.setCategory(category);
+        }
+
+        product.setName(productRequest.getName());
+        product.setDescription(productRequest.getDescription());
+        product.setPrice(productRequest.getPrice());
+        product.setOriginalPrice(productRequest.getOriginalPrice());
+        product.setImagePath(productRequest.getImagePath());
+        product.setNew(productRequest.isNew());
+        product.setRating(productRequest.getRating());
+        product.setColor(productRequest.getColor());
+        product.setReviews(productRequest.getReviews());
+        product.setOnSale(productRequest.isOnSale());
+        
+
+        product = productRepository.save(product);
+        log.info("Product updated: {}", productId);
+
+        return convertToProductResponse(product);
+    }
     /**
      * Convertit une commande en DTO OrderResponse.
      *
@@ -334,4 +386,13 @@ public Object getDashboardStatistics() {
 
     @Override
     public   void assignDeliveryPerson(Long orderId, Long deliveryPersonId){}
+
+    private Category createNewCategory(String categoryName) {
+        Category newCategory = new Category();
+        newCategory.setName(categoryName);
+        newCategory = categoryRepository.save(newCategory);
+        log.info("New category created: {}", categoryName);
+        return newCategory;
+    }
+
 }

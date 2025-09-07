@@ -106,6 +106,14 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(cart);
     }
 
+    @Override
+    public CartResponse clearCart(Long userId) {
+    Cart cart = cartRepository.findByUserId(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Panier non trouvé pour l'utilisateur " + userId));
+    cart.getItems().clear(); // Supprime tous les items
+    cartRepository.save(cart);
+    return convertToCartResponse(cart); // Méthode pour mapper l'entité Cart en CartResponse
+}
     private CartResponse convertToCartResponse(Cart cart) {
         return CartResponse.builder()
                 .id(cart.getId())

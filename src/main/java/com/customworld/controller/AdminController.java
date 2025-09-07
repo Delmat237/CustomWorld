@@ -1,5 +1,6 @@
 package com.customworld.controller;
 
+import com.customworld.dto.request.ProductRequest;
 import com.customworld.dto.request.RegisterRequest;
 import com.customworld.dto.response.ApiResponseWrapper;
 import com.customworld.dto.response.OrderResponse;
@@ -20,6 +21,7 @@ import jakarta.validation.Valid;
 
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -201,6 +203,27 @@ public class AdminController {
         adminService.deleteProduct(productId);
         return ResponseEntity.ok().build();
     }
+
+        /**
+     * PUT /api/admin/products/{productId}
+     * Met à jour les informations d’un produit existant.
+     *
+     * @param productId Identifiant du produit à mettre à jour.
+     * @param productRequest Nouvelles données du produit.
+     * @return Produit mis à jour sous forme de ProductResponse.
+     */
+    @Operation(summary = "Met à jour les informations d’un produit existant.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produit mis à jour avec succès"),
+            @ApiResponse(responseCode = "404", description = "Produit non trouvé")
+    })
+    @PutMapping("/products/{productId}")
+    public ResponseEntity<ProductResponse> updateProduct(
+            @PathVariable Long productId,
+            @RequestBody ProductRequest productRequest) {
+        return ResponseEntity.ok(vendorService.updateProduct(productId, productRequest));
+    }
+
 
  /**
      * GET /api/admin/statistics

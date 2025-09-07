@@ -17,7 +17,8 @@ import java.util.Map;
 
 /**
  * Contrôleur REST pour la gestion de l'authentification des utilisateurs.
- * Fournit des endpoints pour la connexion, l'inscription, le rafraîchissement du token, et la réinitialisation du mot de passe.
+ * Fournit des endpoints pour la connexion, l'inscription, le rafraîchissement du token, la réinitialisation du mot de passe,
+ * et la mise à jour des informations de l'utilisateur.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -125,5 +126,26 @@ public class AuthController {
         String newPassword = request.get("newPassword");
         authService.resetPassword(token, newPassword);
         return ResponseEntity.ok(new ApiResponseWrapper(true, "Mot de passe réinitialisé avec succès"));
+    }
+
+    /**
+     * Met à jour les informations d'un utilisateur authentifié.
+     *
+     * @param updateUserRequest Objet contenant les nouvelles informations de l'utilisateur (nom, email, etc.).
+     * @return ResponseEntity contenant un message de succès.
+     */
+    @Operation(summary = "Mettre à jour les informations de l'utilisateur", description = "Met à jour les informations d'un utilisateur authentifié à partir de son token JWT.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Informations mises à jour avec succès"),
+            @ApiResponse(responseCode = "400", description = "Données invalides ou email déjà utilisé"),
+            @ApiResponse(responseCode = "401", description = "Utilisateur non authentifié"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
+    })
+    @PutMapping("/update-user")
+    public ResponseEntity<ApiResponseWrapper> updateUser(@Valid @RequestBody RegisterRequest updateUserRequest,
+                                                        @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : authorizationHeader;
+        authService.updateUser(updateUserRequest, token);
+        return ResponseEntity.ok(new ApiResponseWrapper(true, "Informations mises à jour avec succès"));
     }
 }

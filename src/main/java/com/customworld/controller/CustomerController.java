@@ -15,8 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import  com.customworld.repository.UserRepository;
-
+import com.customworld.repository.UserRepository;
 import com.customworld.entity.User;
 import com.utils.UserInterceptor;
 
@@ -25,11 +24,11 @@ import java.util.List;
 /**
  * Contrôleur REST dédié aux opérations liées aux clients.
  * Fournit des endpoints pour consulter les produits, créer des commandes,
- * uploader des images et récupérer les commandes d’un client.
+ * uploader des images, récupérer les commandes d’un client et gérer le panier.
  */
 @RestController
 @RequestMapping("/api/customer")
-@Tag(name = "Client" , description = "Fournit des endpoints pour consulter les produits, créer des commandes, uploader des images et récupérer les commandes d’un client.")
+@Tag(name = "Client", description = "Fournit des endpoints pour consulter les produits, créer des commandes, uploader des images, récupérer les commandes d’un client et gérer le panier.")
 public class CustomerController {
 
     private final CustomerService customerService;
@@ -37,20 +36,17 @@ public class CustomerController {
     private final ProductService productService;
     private final UserRepository userRepository;
 
-
-
     /**
-     * Constructeur avec injection des ervices Panier et Produits
-     * @param cartService Service métier pour la geston des operation sur le panier
-     * @param productService Service metier pour la gestion des operations ssur les produits
+     * Constructeur avec injection des services Panier et Produits
+     * @param cartService Service métier pour la gestion des opérations sur le panier
+     * @param productService Service métier pour la gestion des opérations sur les produits
      * @param customerService Service métier pour la gestion des opérations clients
      */
-    public CustomerController(CustomerService customerService,CartService cartService, ProductService productService,UserRepository userRepository) {
+    public CustomerController(CustomerService customerService, CartService cartService, ProductService productService, UserRepository userRepository) {
         this.customerService = customerService;
         this.cartService = cartService;
         this.productService = productService;
         this.userRepository = userRepository;
-
     }
 
     /**
@@ -64,7 +60,7 @@ public class CustomerController {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
-     @GetMapping("/products/by-category")
+    @GetMapping("/products/by-category")
     @Operation(summary = "Récupère les produits par catégorie")
     public ResponseEntity<List<ProductResponse>> getProductsByCategory(@RequestParam String category) {
         return ResponseEntity.ok(productService.getProductsByCategory(category));
@@ -80,16 +76,15 @@ public class CustomerController {
 
     @PostMapping("/cart/add")
     @Operation(summary = "Ajoute un produit au panier")
-    public ResponseEntity<CartResponse> addToCart( @RequestParam Long productId, @RequestParam int quantity) {
+    public ResponseEntity<CartResponse> addToCart(@RequestParam Long productId, @RequestParam int quantity) {
         User user = UserInterceptor.getAuthenticatedUser(userRepository);
         Long userId = user.getId();
-       
         return ResponseEntity.ok(cartService.addToCart(userId, productId, quantity));
     }
 
     @DeleteMapping("/cart/remove/{cartItemId}")
     @Operation(summary = "Supprime un article du panier")
-    public ResponseEntity<CartResponse> removeFromCart( @PathVariable Long cartItemId) {
+    public ResponseEntity<CartResponse> removeFromCart(@PathVariable Long cartItemId) {
         User user = UserInterceptor.getAuthenticatedUser(userRepository);
         Long userId = user.getId();
         return ResponseEntity.ok(cartService.removeFromCart(userId, cartItemId));
@@ -145,23 +140,38 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getOrdersByCustomer(customerId));
     }
 
-@GetMapping("/context")
-@Operation(summary = "Récupère les catégories, les produits et le panier du client")
-public ResponseEntity<ContextResponse> getCustomerContext(@RequestParam(required = false) String category) {
-    User user = UserInterceptor.getAuthenticatedUser(userRepository);
-    Long userId = user.getId();
-    List<CategoryResponse> categories = productService.getAllCategories();
-    List<ProductResponse> products = category != null
-            ? productService.getProductsByCategory(category)
-            : productService.getAllProducts();
-    CartResponse cart = cartService.getCartByUser(userId);
+    @GetMapping("/context")
+    @Operation(summary = "Récupère les catégories, les produits et le panier du client")
+    public ResponseEntity<ContextResponse> getCustomerContext(@RequestParam(required = false) String category) {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long userId = user.getId();
+        List<CategoryResponse> categories = productService.getAllCategories();
+        List<ProductResponse> products = category != null
+                ? productService.getProductsByCategory(category)
+                : productService.getAllProducts();
+        CartResponse cart = cartService.getCartByUser(userId);
 
-    return ResponseEntity.ok(new ContextResponse(categories,products, cart));
-}
+        return ResponseEntity.ok(new ContextResponse(categories, products, cart));
+    }
 
-@GetMapping("/categories")
+    @GetMapping("/categories")
     @Operation(summary = "Récupère la liste des catégories")
     public ResponseEntity<List<CategoryResponse>> getCategories() {
         return ResponseEntity.ok(productService.getAllCategories());
+    }
+
+    /**
+     * DELETE /api/customer/cart/clear
+     * Vide complètement le panier d’un client authentifié.
+     *
+     * @return ResponseEntity contenant le panier vide (CartResponse).
+     */
+    @Operation(summary = "Vider le panier", description = "Supprime tous les articles du panier de l'utilisateur authentifié.")
+
+    @DeleteMapping("/cart/clear")
+    public ResponseEntity<CartResponse> clearCart() {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        Long userId = user.getId();
+        return ResponseEntity.ok(cartService.clearCart(userId));
     }
 }

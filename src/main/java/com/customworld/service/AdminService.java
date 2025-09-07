@@ -1,5 +1,6 @@
 package com.customworld.service;
 
+import com.customworld.dto.request.ProductRequest;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.dto.response.UserResponse;
@@ -23,4 +24,5 @@ public interface AdminService {
     void deleteUser(Long userId);
     void updateUser(Long userId,UserRole role);
     void assignDeliveryPerson(Long orderId, Long deliveryPersonId);
+    ProductResponse updateProduct(Long productId, ProductRequest productRequest) ;
 }

@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
+import com.utils.UserInterceptor;
+
 /**
  * Implémentation du service d'authentification.
  */
@@ -189,4 +191,25 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordResetTokenExpiry(null);
         userRepository.save(user);
     }
+
+    @Override
+    public void updateUser(RegisterRequest updateUserRequest, String token) {
+  //Recuperation de l'Utilisateur à partie du token
+    User user = UserInterceptor.getAuthenticatedUser(userRepository);
+    Long userId = user.getId();
+    // Mettre à jour les champs
+    user.setName(updateUserRequest.getName());
+    user.setEmail(updateUserRequest.getEmail());
+    user.setPhone(updateUserRequest.getPhone());
+    user.setAddress(updateUserRequest.getAddress());
+    
+
+    // Vérifier si l'email est déjà utilisé par un autre utilisateur
+    if (userRepository.findByEmail(updateUserRequest.getEmail())
+            .filter(u -> !u.getId().equals(userId)).isPresent()) {
+        throw new IllegalArgumentException("Cet email est déjà utilisé");
+    }
+
+    userRepository.save(user);
+}
 }
