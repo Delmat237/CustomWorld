@@ -217,7 +217,7 @@ public class AdminController {
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long productId,
             @RequestBody ProductRequest productRequest) {
-        return ResponseEntity.ok(vendorService.updateProduct(productId, productRequest));
+        return ResponseEntity.ok(adminService.updateProduct(productId, productRequest));
     }
 
     /**
