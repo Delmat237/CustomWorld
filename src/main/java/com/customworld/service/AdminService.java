@@ -1,6 +1,8 @@
 package com.customworld.service;
 
+import com.customworld.dto.request.CategoryRequest;
 import com.customworld.dto.request.ProductRequest;
+import com.customworld.dto.response.CategoryResponse;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.dto.response.UserResponse;
@@ -25,4 +27,9 @@ public interface AdminService {
     void updateUser(Long userId,UserRole role);
     void assignDeliveryPerson(Long orderId, Long deliveryPersonId);
     ProductResponse updateProduct(Long productId, ProductRequest productRequest) ;
+   CategoryResponse createCategory(CategoryRequest categoryRequest);    
+   List<CategoryResponse> getAllCategories();
+    void deleteCategory(Long categoryId);
+    CategoryResponse updateCategory(Long categoryId, CategoryRequest categoryRequest);
+    CategoryResponse getCategoryById(Long categoryId);
 }

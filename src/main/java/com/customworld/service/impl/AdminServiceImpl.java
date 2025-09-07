@@ -1,6 +1,8 @@
 package com.customworld.service.impl;
 
+import com.customworld.dto.request.CategoryRequest;
 import com.customworld.dto.request.ProductRequest;
+import com.customworld.dto.response.CategoryResponse;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.dto.response.UserResponse;
@@ -394,5 +396,57 @@ public Object getDashboardStatistics() {
         log.info("New category created: {}", categoryName);
         return newCategory;
     }
+
+@Override
+    public CategoryResponse createCategory(CategoryRequest categoryRequest) {
+    Category category = new Category();
+    category.setName(categoryRequest.getName());
+    if (categoryRepository.existsByName(category.getName())) {
+        throw new IllegalArgumentException("Cette catégorie existe déjà");
+    }
+    category = categoryRepository.save(category);
+    return mapToCategoryResponse(category);
+}
+
+@Override
+public List<CategoryResponse> getAllCategories() {
+    return categoryRepository.findAll().stream()
+            .map(this::mapToCategoryResponse)
+            .collect(Collectors.toList());
+}
+
+@Override
+public CategoryResponse getCategoryById(Long id) {
+    Category category = categoryRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée avec l'ID " + id));
+    return mapToCategoryResponse(category);
+}
+
+@Override
+public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
+    Category category = categoryRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée avec l'ID " + id));
+    if (categoryRepository.existsByName(categoryRequest.getName()) && !category.getName().equals(categoryRequest.getName())) {
+        throw new IllegalArgumentException("Cette catégorie existe déjà");
+    }
+    category.setName(categoryRequest.getName());
+    category = categoryRepository.save(category);
+    return mapToCategoryResponse(category);
+}
+
+@Override
+public void deleteCategory(Long id) {
+    Category category = categoryRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée avec l'ID " + id));
+    categoryRepository.delete(category);
+}
+
+// Méthode utilitaire pour mapper l'entité en DTO
+private CategoryResponse mapToCategoryResponse(Category category) {
+    return CategoryResponse.builder()
+            .id(category.getId())
+            .name(category.getName())
+            .build();
+}
 
 }

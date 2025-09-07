@@ -1,8 +1,10 @@
 package com.customworld.controller;
 
+import com.customworld.dto.request.CategoryRequest;
 import com.customworld.dto.request.ProductRequest;
 import com.customworld.dto.request.RegisterRequest;
 import com.customworld.dto.response.ApiResponseWrapper;
+import com.customworld.dto.response.CategoryResponse;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.entity.User;
@@ -16,10 +18,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
-
-
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,30 +26,29 @@ import java.util.List;
 
 /**
  * Contrôleur REST pour les fonctionnalités d'administration.
- * Fournit des endpoints pour la gestion des utilisateurs, des commandes et des produits.
+ * Fournit des endpoints pour la gestion des utilisateurs, des commandes, des produits et des catégories.
  */
 @RestController
 @RequestMapping("/api/admin")
-@Tag(name = "Administrateur", description = "Fournit des endpoints pour la gestion des utilisateurs, des commandes et des produits.")
+@Tag(name = "Administrateur", description = "Fournit des endpoints pour la gestion des utilisateurs, des commandes, des produits et des catégories.")
 public class AdminController {
 
-    private final AdminService adminService ;
+    private final AdminService adminService;
     private final ProductService productService;
     private final AuthService authService;
     private final VendorService vendorService;
 
     /**
-     * Injection du service d'administration via le constructeur. 
+     * Injection du service d'administration via le constructeur.
      * @param adminService service métier pour la gestion admin
      * @param productService service métier pour la gestion des produits
      */
-    public AdminController(AdminService adminService, ProductService productService,AuthService authService,VendorService vendorService) {
+    public AdminController(AdminService adminService, ProductService productService, AuthService authService, VendorService vendorService) {
         this.adminService = adminService;
         this.productService = productService;
         this.authService = authService;
         this.vendorService = vendorService;
     }
-
 
     /**
      * Endpoint : GET /api/admin/users
@@ -70,7 +67,7 @@ public class AdminController {
      * @param registerRequest Objet contenant les informations d'inscription (nom, email, mot de passe, etc.).
      * @return ResponseEntity contenant un message de succès.
      */
-    @Operation(summary = "Inscription d'un utilisateur par un user ", description = "Crée un nouveau compte utilisateur et envoie un email de bienvenue.")
+    @Operation(summary = "Inscription d'un utilisateur par un user", description = "Crée un nouveau compte utilisateur et envoie un email de bienvenue.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Utilisateur créé avec succès"),
             @ApiResponse(responseCode = "400", description = "Email déjà utilisé ou données invalides")
@@ -81,7 +78,7 @@ public class AdminController {
         return ResponseEntity.ok(new ApiResponseWrapper(true, "Utilisateur créé avec succès"));
     }
 
-      /**
+    /**
      * DELETE /api/admin/user/{userId}
      * Supprime un utilisateur existant.
      *
@@ -104,7 +101,7 @@ public class AdminController {
      * Met à jour les informations d’un User existant.
      *
      * @param userId Identifiant du produit à mettre à jour.
-     * @param role Nouvelles  role
+     * @param role Nouvelles role
      * @return 
      */
     @Operation(summary = "Met à jour le role d’un utilisateur existant.")
@@ -116,7 +113,7 @@ public class AdminController {
     public ResponseEntity<Void> updateUser(
             @PathVariable Long userId,
             @RequestBody UserRole role) {
-                adminService.updateUser(userId, role);
+        adminService.updateUser(userId, role);
         return ResponseEntity.ok().build();
     }
 
@@ -156,20 +153,20 @@ public class AdminController {
         return ResponseEntity.ok(adminService.validateProduct(id));
     }
 
-     /**
+    /**
      * GET /api/admin/products
-     * Récupère la liste des produits 
+     * Récupère la liste des produits
      *
-
      * @return Liste des produits sous forme de ProductResponse.
      */
-    @Operation(summary = "Récupère la liste des produits .")
+    @Operation(summary = "Récupère la liste des produits.")
     @GetMapping("/products")
     public ResponseEntity<List<ProductResponse>> getProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
+
     /**
-     * GET /api/vendor/products/{id}
+     * GET /api/admin/products/{id}
      * Récupère un produit spécifique par son identifiant.
      *
      * @param id Identifiant du produit.
@@ -185,8 +182,7 @@ public class AdminController {
         return ResponseEntity.ok(vendorService.getProductById(id));
     }
 
-
-        /**
+    /**
      * DELETE /api/admin/products/{productId}
      * Supprime un produit existant.
      *
@@ -204,7 +200,7 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
-        /**
+    /**
      * PUT /api/admin/products/{productId}
      * Met à jour les informations d’un produit existant.
      *
@@ -224,21 +220,109 @@ public class AdminController {
         return ResponseEntity.ok(vendorService.updateProduct(productId, productRequest));
     }
 
-
- /**
+    /**
      * GET /api/admin/statistics
      * Récupère les statistiques liées
      *
-     * @return Objet contenant les statistiques .
+     * @return Objet contenant les statistiques.
      */
     @Operation(summary = "Récupère les statistiques")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Statistiques récupérées")
     })
-
     @GetMapping("/statistics")
     public ResponseEntity<Object> getVendorStatistics() {
         return ResponseEntity.ok(adminService.getDashboardStatistics());
     }
-   
+
+    /**
+     * POST /api/admin/categories
+     * Crée une nouvelle catégorie.
+     *
+     * @param categoryRequest Nom de la nouvelle catégorie.
+     * @return Catégorie créée sous forme de CategoryResponse.
+     */
+    @Operation(summary = "Crée une nouvelle catégorie", description = "Ajoute une nouvelle catégorie au système.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Catégorie créée avec succès"),
+            @ApiResponse(responseCode = "400", description = "Nom de catégorie déjà existant ou invalide")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/categories")
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest categoryRequest) {
+        return ResponseEntity.ok(adminService.createCategory(categoryRequest));
+    }
+
+    /**
+     * GET /api/admin/categories
+     * Récupère la liste de toutes les catégories.
+     *
+     * @return Liste des catégories sous forme de CategoryResponse.
+     */
+    @Operation(summary = "Récupère la liste de toutes les catégories", description = "Retourne toutes les catégories disponibles.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Liste des catégories récupérée avec succès")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
+        return ResponseEntity.ok(adminService.getAllCategories());
+    }
+
+    /**
+     * GET /api/admin/categories/{id}
+     * Récupère une catégorie spécifique par son identifiant.
+     *
+     * @param id Identifiant de la catégorie.
+     * @return Catégorie sous forme de CategoryResponse.
+     */
+    @Operation(summary = "Récupère une catégorie spécifique par son identifiant", description = "Retourne les détails d'une catégorie spécifique.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Catégorie récupérée avec succès"),
+            @ApiResponse(responseCode = "404", description = "Catégorie non trouvée")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/categories/{id}")
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getCategoryById(id));
+    }
+
+    /**
+     * PUT /api/admin/categories/{id}
+     * Met à jour une catégorie existante.
+     *
+     * @param id Identifiant de la catégorie à mettre à jour.
+     * @param categoryRequest Nouvelles données de la catégorie.
+     * @return Catégorie mise à jour sous forme de CategoryResponse.
+     */
+    @Operation(summary = "Met à jour une catégorie existante", description = "Modifie le nom d'une catégorie existante.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Catégorie mise à jour avec succès"),
+            @ApiResponse(responseCode = "400", description = "Nom de catégorie déjà existant ou invalide"),
+            @ApiResponse(responseCode = "404", description = "Catégorie non trouvée")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/categories/{id}")
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest categoryRequest) {
+        return ResponseEntity.ok(adminService.updateCategory(id, categoryRequest));
+    }
+
+    /**
+     * DELETE /api/admin/categories/{id}
+     * Supprime une catégorie existante.
+     *
+     * @param id Identifiant de la catégorie à supprimer.
+     * @return ResponseEntity sans contenu.
+     */
+    @Operation(summary = "Supprime une catégorie existante", description = "Supprime une catégorie du système.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Catégorie supprimée avec succès"),
+            @ApiResponse(responseCode = "404", description = "Catégorie non trouvée")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/categories/{id}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        adminService.deleteCategory(id);
+        return ResponseEntity.ok().build();
+    }
 }
