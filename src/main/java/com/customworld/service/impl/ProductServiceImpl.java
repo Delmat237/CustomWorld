@@ -34,6 +34,13 @@ public class ProductServiceImpl implements ProductService {
                 .map(this::convertToProductResponse)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produit non trouvé"));
+        return convertToProductResponse(product);
+    }
 
     @Override
     public List<ProductResponse> getProductsByCategory(String category) {

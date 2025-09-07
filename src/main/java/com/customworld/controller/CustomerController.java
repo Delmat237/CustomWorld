@@ -66,6 +66,19 @@ public class CustomerController {
         return ResponseEntity.ok(productService.getProductsByCategory(category));
     }
 
+        /**
+     * GET /api/customer/products/{id}
+     * Récupère un produit spécifique par son identifiant.
+     *
+     * @param id Identifiant du produit.
+     * @return Produit sous forme de ProductResponse.
+     */
+    @Operation(summary = "Récupère un produit spécifique par son identifiant.")
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getProductById(id));
+    }
+
     @GetMapping("/cart")
     @Operation(summary = "Récupère le panier d’un client")
     public ResponseEntity<CartResponse> getCart() {
