@@ -9,7 +9,7 @@ import java.util.List;
 public interface ProductService {
     List<ProductResponse> getAllProducts();
     List<ProductResponse> getProductsByCategory(String category);
-    List<ProductResponse> getProductById(Long productId );
+    ProductResponse getProductById(Long productId );
     List<ProductResponse> getProductsByVendor(Long vendorId);
     List<ProductResponse> getVendorProducts(Pageable pageable);
     List<CategoryResponse> getAllCategories();
