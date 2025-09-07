@@ -165,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
             emailService.sendEmail(
                     user.getEmail(),
                     "Réinitialisation de mot de passe",
-                    "Bonjour " + user.getName() + ",\n\nCliquez sur ce lien pour réinitialiser votre mot de passe : http://your-frontend.com/reset-password?token=" + resetToken
+                    "Bonjour " + user.getName() + ",\n\nCliquez sur ce lien pour réinitialiser votre mot de passe :https://customworld.vercel.app/reset-password?token=" + resetToken
             );
         } catch (Exception e) {
             logger.error("Échec de l'envoi de l'email de réinitialisation à {} : {}", user.getEmail(), e.getMessage());
