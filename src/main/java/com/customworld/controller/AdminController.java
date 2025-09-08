@@ -144,8 +144,8 @@ public class AdminController {
      */
     @Operation(summary = "Récupère la liste des commandes passées par un client spécifique.")
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/orders")
-    public ResponseEntity<List<OrderResponse>> getCustomerOrders(@RequestParam Long customerId) {
+    @GetMapping("/orders/{customerId}")
+    public ResponseEntity<List<OrderResponse>> getCustomerOrders(@PathVariable Long customerId) {
         
         return ResponseEntity.ok(customerService.getOrdersByCustomer(customerId));
     }
