@@ -68,7 +68,7 @@ public class CartServiceImpl implements CartService {
                 });
 
         cartItem.setQuantity(cartItem.getQuantity() + quantity);
-        
+    
         cartItemRepository.save(cartItem);
         cartRepository.save(cart);
         log.info("Added product {} to cart for user {}", productId, userId);
@@ -128,6 +128,7 @@ public class CartServiceImpl implements CartService {
                                 .price(item.getProduct().getPrice())
                                 .quantity(item.getQuantity())
                                 .imagePath(item.getProduct().getImagePath())
+                                .isCustomized(item.isCustomized())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
