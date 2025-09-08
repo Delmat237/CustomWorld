@@ -89,7 +89,7 @@ public class CustomerController {
 
     @PostMapping("/cart/add")
     @Operation(summary = "Ajoute un produit au panier")
-    public ResponseEntity<CartResponse> addToCart(@RequestParam Long productId, @RequestParam int quantity,@RequestParam boolean isCustomized) {
+    public ResponseEntity<CartResponse> addToCart(@RequestParam Long productId, @RequestParam int quantity, boolean isCustomized) {
         User user = UserInterceptor.getAuthenticatedUser(userRepository);
         Long userId = user.getId();
         return ResponseEntity.ok(cartService.addToCart(userId, productId, quantity,isCustomized));
