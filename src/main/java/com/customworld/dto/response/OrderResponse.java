@@ -27,5 +27,7 @@ public class OrderResponse {
     private Double amount;
     private String currency;
     private String transactionId;
+    private Long modeLivraison;
+    private String phone;
 
 }

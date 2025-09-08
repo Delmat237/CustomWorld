@@ -19,6 +19,8 @@ public class CustomOrderRequest {
     private Long productId;
     private String deliveryAddress;
     private String imagePath;
+    private Long modeLivraison;
+    private String phone;
 
 
 }

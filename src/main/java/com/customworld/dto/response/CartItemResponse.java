@@ -13,4 +13,6 @@ public class CartItemResponse {
     private Double price;
     private int quantity;
     private String imagePath;
+    @Builder.Default
+    private boolean isCustomized = false;
 }

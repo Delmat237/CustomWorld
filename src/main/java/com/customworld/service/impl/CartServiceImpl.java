@@ -44,7 +44,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse addToCart(Long userId, Long productId, int quantity) {
+    public CartResponse addToCart(Long userId, Long productId, int quantity, boolean isCustomized) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> createCart(userId));
         Product product = productRepository.findById(productId)
@@ -61,12 +61,14 @@ public class CartServiceImpl implements CartService {
                             .cart(cart)
                             .product(product)
                             .quantity(0)
+                            .isCustomized(isCustomized)
                             .build();
                     cart.getItems().add(newItem);
                     return newItem;
                 });
 
         cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        
         cartItemRepository.save(cartItem);
         cartRepository.save(cart);
         log.info("Added product {} to cart for user {}", productId, userId);

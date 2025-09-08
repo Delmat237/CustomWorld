@@ -8,11 +8,15 @@ import com.customworld.dto.response.CategoryResponse;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.entity.User;
+import com.customworld.enums.OrderStatus;
 import com.customworld.enums.UserRole;
 import com.customworld.service.AdminService;
 import com.customworld.service.AuthService;
 import com.customworld.service.ProductService;
 import com.customworld.service.VendorService;
+import com.customworld.service.CustomerService;
+import com.utils.UserInterceptor;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -37,17 +41,19 @@ public class AdminController {
     private final ProductService productService;
     private final AuthService authService;
     private final VendorService vendorService;
-
+    private final CustomerService customerService;
     /**
      * Injection du service d'administration via le constructeur.
      * @param adminService service métier pour la gestion admin
      * @param productService service métier pour la gestion des produits
      */
-    public AdminController(AdminService adminService, ProductService productService, AuthService authService, VendorService vendorService) {
+    public AdminController(AdminService adminService, ProductService productService, AuthService authService, VendorService vendorService,
+                CustomerService customerService) {
         this.adminService = adminService;
         this.productService = productService;
         this.authService = authService;
         this.vendorService = vendorService;
+        this.customerService = customerService;
     }
 
     /**
@@ -126,6 +132,37 @@ public class AdminController {
     @GetMapping("/orders")
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
         return ResponseEntity.ok(adminService.getAllOrders());
+    }
+
+    
+    /**
+     * GET /api/admin/orders?customerId={customerId}
+     * Récupère la liste des commandes passées par un client spécifique.
+     *
+     * @param customerId Identifiant du client.
+     * @return ResponseEntity contenant la liste des commandes (OrderResponse).
+     */
+    @Operation(summary = "Récupère la liste des commandes passées par un client spécifique.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderResponse>> getCustomerOrders(@RequestParam Long customerId) {
+        
+        return ResponseEntity.ok(customerService.getOrdersByCustomer(customerId));
+    }
+
+    /**
+     * PUT /api/admin/orders/{id}/validate?status={status}
+     * Met à jour le statut d’une commande (ex: VALIDATED, SHIPPED).
+     * @param id Identifiant de la commande à mettre à jour.
+     * @param status Nouveau statut de la commande.
+     * @return Commande mise à jour sous forme de DTO OrderResponse.
+     */
+    @Operation(summary = "Met à jour le statut d’une commande (ex: VALIDATED, SHIPPED,PAID).")
+    @PutMapping("/orders/{id}/validate")        
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestParam OrderStatus  status) {
+        return ResponseEntity.ok(adminService.updateOrderStatus(orderId, status));
     }
 
     /**
@@ -325,4 +362,5 @@ public class AdminController {
         adminService.deleteCategory(id);
         return ResponseEntity.ok().build();
     }
+
 }

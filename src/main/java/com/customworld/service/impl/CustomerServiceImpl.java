@@ -80,6 +80,8 @@ public  class CustomerServiceImpl implements CustomerService {
                 .status(OrderStatus.PENDING)
                 .orderDate(LocalDateTime.now())
                 .deliveryAddress(orderRequest.getDeliveryAddress())
+                .modeLivraison(orderRequest.getModeLivraison())
+                .phone(orderRequest.getPhone())
                 .build();
 
         order = orderRepository.save(order);

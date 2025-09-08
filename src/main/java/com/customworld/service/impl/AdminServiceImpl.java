@@ -118,6 +118,21 @@ public  class AdminServiceImpl implements AdminService {
                 .collect(Collectors.toList());
     }
 
+    /*
+     * Mets a jour le statut d'une commande
+     */
+    @Override
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
+        CustomOrder order = orderRepository.findById(orderId)
+                .orElseThrow(() -> {
+                    log.error("Order not found for status update: {}", orderId);
+                    return new ResourceNotFoundException("Commande non trouvée");   
+                });
+        order.setStatus(status);
+        order = orderRepository.save(order);
+        log.info("Order {} status updated to {}", orderId, status);
+        return convertToOrderResponse(order);
+    }
     /**
      * Assigne une commande à un livreur.
      *

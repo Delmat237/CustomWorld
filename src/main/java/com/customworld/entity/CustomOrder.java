@@ -55,5 +55,7 @@ public class CustomOrder {
      */
     private String deliveryAddress;
 
+    private Long modeLivraison;
+    private String phone;
 
 }
