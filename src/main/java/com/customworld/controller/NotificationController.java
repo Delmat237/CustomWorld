@@ -29,12 +29,6 @@ public class NotificationController {
     private final EmailService emailService;
     private final SmsService smsService;
 
-    /**
-     * Constructeur avec injection des services de notification.
-     *
-     * @param emailService Service pour l'envoi d'emails.
-     * @param smsService Service pour l'envoi de SMS.
-     */
     public NotificationController(EmailService emailService, SmsService smsService) {
         this.emailService = emailService;
         this.smsService = smsService;
@@ -43,7 +37,7 @@ public class NotificationController {
     /**
      * Envoie une notification par email à un utilisateur.
      *
-     * @param request Map contenant l'email, le sujet et le message.
+     * @param emailRequest DTO contenant l'email, le sujet et le message.
      * @return ResponseEntity contenant un message de succès ou d'erreur.
      */
     @Operation(summary = "Envoyer une notification par email", description = "Envoie un email à l'adresse spécifiée avec un sujet et un message.")
@@ -53,22 +47,22 @@ public class NotificationController {
             @ApiResponse(responseCode = "500", description = "Erreur lors de l'envoi de l'email")
     })
     @PostMapping("/send-email")
-    public ResponseEntity<ApiResponseWrapper> sendEmail(@RequestParam EmailRequest emailRequest) {
-
-        String email = emailRequest.getEmail();
-        String subject = emailRequest.getSubject();
-        String message = emailRequest.getMessage();
-
-        if (email == null || subject == null || message == null) {
+    public ResponseEntity<ApiResponseWrapper> sendEmail(@RequestBody EmailRequest emailRequest) {
+        if (emailRequest == null || 
+            emailRequest.getEmail() == null || emailRequest.getEmail().trim().isEmpty() ||
+            emailRequest.getSubject() == null || emailRequest.getSubject().trim().isEmpty() ||
+            emailRequest.getMessage() == null || emailRequest.getMessage().trim().isEmpty()) {
+            logger.warn("Invalid email parameters: {}", emailRequest);
             return ResponseEntity.badRequest()
                     .body(new ApiResponseWrapper(false, "Email, sujet ou message manquant"));
         }
 
         try {
-            emailService.sendEmail(email, subject, message);
+            emailService.sendEmail(emailRequest.getEmail(), emailRequest.getSubject(), emailRequest.getMessage());
+            logger.info("Email sent successfully to {}", emailRequest.getEmail());
             return ResponseEntity.ok(new ApiResponseWrapper(true, "Email envoyé avec succès"));
         } catch (Exception e) {
-            logger.error("Échec de l'envoi de l'email à {} : {}", email, e.getMessage());
+            logger.error("Failed to send email to {}: {}", emailRequest.getEmail(), e.getMessage(), e);
             return ResponseEntity.status(500)
                     .body(new ApiResponseWrapper(false, "Erreur lors de l'envoi de l'email"));
         }
@@ -91,16 +85,18 @@ public class NotificationController {
         String phone = request.get("phone");
         String message = request.get("message");
 
-        if (phone == null || message == null) {
+        if (phone == null || phone.trim().isEmpty() || message == null || message.trim().isEmpty()) {
+            logger.warn("Invalid SMS parameters: phone={}, message={}", phone, message);
             return ResponseEntity.badRequest()
                     .body(new ApiResponseWrapper(false, "Numéro de téléphone ou message manquant"));
         }
 
         try {
             smsService.sendSms(phone, message);
+            logger.info("SMS sent successfully to {}", phone);
             return ResponseEntity.ok(new ApiResponseWrapper(true, "SMS envoyé avec succès"));
         } catch (Exception e) {
-            logger.error("Échec de l'envoi du SMS à {} : {}", phone, e.getMessage());
+            logger.error("Failed to send SMS to {}: {}", phone, e.getMessage(), e);
             return ResponseEntity.status(500)
                     .body(new ApiResponseWrapper(false, "Erreur lors de l'envoi du SMS"));
         }
