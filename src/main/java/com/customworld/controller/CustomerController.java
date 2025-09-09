@@ -4,12 +4,16 @@ import com.customworld.dto.request.CustomOrderRequest;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.dto.response.ContextResponse;
+import com.customworld.dto.response.ApiResponseWrapper;
 import com.customworld.dto.response.CartResponse;
 import com.customworld.dto.response.CategoryResponse;
 import com.customworld.service.CustomerService;
 import com.customworld.service.CartService;
 import com.customworld.service.ProductService;
+import com.customworld.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.customworld.repository.UserRepository;
 import com.customworld.entity.User;
+import com.customworld.exception.ResourceNotFoundException;
 import com.utils.UserInterceptor;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contrôleur REST dédié aux opérations liées aux clients.
@@ -33,6 +40,8 @@ public class CustomerController {
 
     private final CustomerService customerService;
     private final CartService cartService;
+    private final NotificationController notificationController ;
+    private final OrderService orderService;
     private final ProductService productService;
     private final UserRepository userRepository;
 
@@ -41,12 +50,22 @@ public class CustomerController {
      * @param cartService Service métier pour la gestion des opérations sur le panier
      * @param productService Service métier pour la gestion des opérations sur les produits
      * @param customerService Service métier pour la gestion des opérations clients
+     * @param userRepository Référentiel pour accéder aux données des utilisateurs
+     * @param notificationController Contrôleur pour gérer les notifications (emails, SMS)
+     * @param orderService Service métier pour la gestion des opérations sur les commandes
      */
-    public CustomerController(CustomerService customerService, CartService cartService, ProductService productService, UserRepository userRepository) {
+    public CustomerController(CustomerService customerService, 
+            CartService cartService, 
+            ProductService productService, 
+            UserRepository userRepository,
+            NotificationController notificationController,
+            OrderService orderService) {
         this.customerService = customerService;
         this.cartService = cartService;
         this.productService = productService;
         this.userRepository = userRepository;
+        this.notificationController = notificationController;
+        this.orderService = orderService;
     }
 
     /**
@@ -152,6 +171,51 @@ public class CustomerController {
         Long customerId = user.getId();
         return ResponseEntity.ok(customerService.getOrdersByCustomer(customerId));
     }
+
+
+    @GetMapping("/orders/{orderId}")
+@Operation(summary = "Récupère une commande spécifique par son ID")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Commande récupérée avec succès"),
+        @ApiResponse(responseCode = "400", description = "ID de commande invalide ou commande non trouvée"),
+        @ApiResponse(responseCode = "403", description = "Accès non autorisé"),
+        @ApiResponse(responseCode = "500", description = "Erreur serveur")
+})
+public ResponseEntity<ApiResponseWrapper> getOrderById(@PathVariable Long orderId) {
+    try {
+        User user = UserInterceptor.getAuthenticatedUser(userRepository);
+        OrderResponse orderResponse = orderService.getOrderById(orderId);
+        if (!orderResponse.getCustomerId().equals(user.getId())) {
+            return ResponseEntity.status(403)
+                    .body(new ApiResponseWrapper(false, "Accès non autorisé à cette commande"));
+        }
+
+        Map<String, String> emailRequest = new HashMap<>();
+        emailRequest.put("email", user.getEmail());
+        emailRequest.put("subject", "Détails de votre commande #" + orderId);
+        emailRequest.put("message", "Bonjour " + user.getName() + ",\n\n" +
+                "Vous avez consulté les détails de votre commande #" + orderId + ".\n" +
+                "Statut: " + orderResponse.getStatus() + "\n" +
+                "Adresse de livraison: " + orderResponse.getDeliveryAddress() + "\n" +
+                "Produit: " + orderResponse.getProductId() + "\n" +
+                "Montant: " + orderResponse.getAmount() + " " + orderResponse.getCurrency() + "\n" +
+                "Merci de faire confiance à Custom World !");
+        notificationController.sendEmail(emailRequest);
+
+        if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+            Map<String, String> smsRequest = new HashMap<>();
+            smsRequest.put("phone", user.getPhone());
+            smsRequest.put("message", "Commande #" + orderId + " consultée. Statut: " + orderResponse.getStatus());
+            notificationController.sendSms(smsRequest);
+        }
+
+        return ResponseEntity.ok(new ApiResponseWrapper(true, "Commande récupérée avec succès", orderResponse));
+    } catch (ResourceNotFoundException | IllegalStateException e) {
+        return ResponseEntity.badRequest().body(new ApiResponseWrapper(false, e.getMessage()));
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body(new ApiResponseWrapper(false, "Erreur serveur"));
+    }
+}
 
     @GetMapping("/context")
     @Operation(summary = "Récupère les catégories, les produits et le panier du client")

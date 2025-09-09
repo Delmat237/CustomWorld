@@ -39,5 +39,8 @@ public class OrderItem {
      */
     private String imagePath;
 
+    @Builder.Default
+    private boolean isCustomized=false;
+
 
 }

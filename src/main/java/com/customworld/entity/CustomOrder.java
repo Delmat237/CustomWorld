@@ -31,6 +31,9 @@ public class CustomOrder {
     @JoinColumn(name = "customer_id")
     private User customer;
 
+    private Double amount;
+    @Builder.Default
+    private String currency="XAF";
     /**
      * Liste des articles dans la commande.
      * Cascade : les opérations sur la commande affectent ses articles.
@@ -50,6 +53,7 @@ public class CustomOrder {
      */
     private LocalDateTime orderDate;
 
+    private String transactionId;
     /**
      * Adresse de livraison complète
      */

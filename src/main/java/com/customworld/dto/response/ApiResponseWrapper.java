@@ -1,23 +1,24 @@
 package com.customworld.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * DTO représentant une réponse générique d'API.
- * Contient un indicateur de succès et un message associé.
+ * Generic wrapper for API responses to standardize success/failure responses.
  */
-
 @Data
-@Builder
+@AllArgsConstructor
 @NoArgsConstructor
-
-public class ApiResponseWrapper {
-
+public class ApiResponseWrapper<T> {
     private boolean success;
     private String message;
+    private T data;
 
-    public ApiResponseWrapper(boolean success,String message) {
-        this.message = message;
+    // Constructor for success/failure without data
+    public ApiResponseWrapper(boolean success, String message) {
         this.success = success;
+        this.message = message;
+        this.data = null;
     }
 }

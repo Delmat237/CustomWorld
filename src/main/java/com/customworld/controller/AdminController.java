@@ -10,12 +10,13 @@ import com.customworld.dto.response.ProductResponse;
 import com.customworld.entity.User;
 import com.customworld.enums.OrderStatus;
 import com.customworld.enums.UserRole;
+import com.customworld.exception.ResourceNotFoundException;
 import com.customworld.service.AdminService;
 import com.customworld.service.AuthService;
 import com.customworld.service.ProductService;
 import com.customworld.service.VendorService;
 import com.customworld.service.CustomerService;
-import com.utils.UserInterceptor;
+import com.customworld.service.OrderService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,7 +27,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contrôleur REST pour les fonctionnalités d'administration.
@@ -42,18 +45,29 @@ public class AdminController {
     private final AuthService authService;
     private final VendorService vendorService;
     private final CustomerService customerService;
+    private final NotificationController notificationController ;
+    private final OrderService orderService;
     /**
      * Injection du service d'administration via le constructeur.
      * @param adminService service métier pour la gestion admin
      * @param productService service métier pour la gestion des produits
+     * @param authService service métier pour la gestion de l'authentification
+     * @param vendorService service métier pour la gestion des vendeurs
+     * @param customerService service métier pour la gestion des clients
      */
-    public AdminController(AdminService adminService, ProductService productService, AuthService authService, VendorService vendorService,
-                CustomerService customerService) {
+    public AdminController(AdminService adminService, ProductService productService,
+     AuthService authService,
+      VendorService vendorService,
+                CustomerService customerService,
+                NotificationController notificationController,
+                OrderService orderService) {
         this.adminService = adminService;
         this.productService = productService;
         this.authService = authService;
         this.vendorService = vendorService;
         this.customerService = customerService;
+        this.notificationController = notificationController;
+        this.orderService = orderService;
     }
 
     /**
@@ -178,6 +192,34 @@ public class AdminController {
         return ResponseEntity.ok(adminService.assignOrderToDeliverer(id, delivererId));
     }
 
+@GetMapping("/orders/{orderId}")
+@Operation(summary = "Récupère une commande spécifique par son ID")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Commande récupérée avec succès"),
+        @ApiResponse(responseCode = "400", description = "ID de commande invalide ou commande non trouvée"),
+        @ApiResponse(responseCode = "500", description = "Erreur serveur")
+})
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<ApiResponseWrapper> getOrderById(@PathVariable Long orderId) {
+    try {
+        OrderResponse orderResponse = orderService.getOrderById(orderId);
+        Map<String, String> emailRequest = new HashMap<>();
+        emailRequest.put("email", "admin@example.com");
+        emailRequest.put("subject", "Consultation de la commande #" + orderId);
+        emailRequest.put("message", "Commande #" + orderId + " consultée.\n" +
+                "Statut: " + orderResponse.getStatus() + "\n" +
+                "Client ID: " + orderResponse.getCustomerId() + "\n" +
+                "Produit: " + orderResponse.getProductId() + "\n" +
+                "Montant: " + orderResponse.getAmount() + " " + orderResponse.getCurrency());
+        notificationController.sendEmail(emailRequest);
+
+        return ResponseEntity.ok(new ApiResponseWrapper(true, "Commande récupérée avec succès", orderResponse));
+    } catch (ResourceNotFoundException | IllegalStateException e) {
+        return ResponseEntity.badRequest().body(new ApiResponseWrapper(false, e.getMessage()));
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body(new ApiResponseWrapper(false, "Erreur serveur"));
+    }
+}
     /**
      * Endpoint : PUT /api/admin/products/{id}/validate
      * Description : Valide un produit (par exemple, pour publication ou mise en vente).
