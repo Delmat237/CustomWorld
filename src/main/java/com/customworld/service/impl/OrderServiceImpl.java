@@ -82,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
             log.error("Invalid delivery address for customer: {}", customerId);
             throw new IllegalArgumentException("Adresse de livraison requise");
         }
-        if (orderRequest.getModeLivraison() == null || orderRequest.getModeLivraison() <= 0) {
+        if (orderRequest.getModeLivraison() == null || orderRequest.getModeLivraison() < 0) {
             log.error("Invalid delivery mode for customer: {}", customerId);
             throw new IllegalArgumentException("Mode de livraison invalide");
         }
@@ -129,8 +129,13 @@ public class OrderServiceImpl implements OrderService {
                 .items(new ArrayList<>())
                 .build();
 
-        order = orderRepository.save(order);
-        log.info("Order created: {}", order.getId());
+        try {
+            order = orderRepository.save(order);
+            log.info("Order created: {}", order.getId());
+        } catch (Exception e) {
+            log.error("Failed to save order for customer {}: {}", customerId, e.getMessage());
+            throw new RuntimeException("Erreur lors de l'enregistrement de la commande", e);
+        }
 
         // Create OrderItems from CartItems
         for (CartItem cartItem : cartItems) {
@@ -145,22 +150,38 @@ public class OrderServiceImpl implements OrderService {
                     .imagePath(cartItem.getProduct().getImagePath())
                     .isCustomized(cartItem.isCustomized())
                     .build();
-            order.getItems().add(orderItem);
-            orderItemRepository.save(orderItem);
-            log.info("Order item added: product {} to order: {}", cartItem.getProduct().getId(), order.getId());
+            try {
+                order.getItems().add(orderItem);
+                orderItemRepository.save(orderItem);
+                log.info("Order item added: product {} to order: {}", cartItem.getProduct().getId(), order.getId());
+            } catch (Exception e) {
+                log.error("Failed to save order item for product {} in order {}: {}", 
+                          cartItem.getProduct().getId(), order.getId(), e.getMessage());
+                throw new RuntimeException("Erreur lors de l'enregistrement de l'article de commande", e);
+            }
         }
 
         // Verify order items
         if (order.getItems().isEmpty()) {
-            orderRepository.delete(order); // Rollback order if no valid items
-            log.error("No valid items added to order: {}", order.getId());
-            throw new IllegalStateException("Aucun article valide dans la commande");
+            try {
+                orderRepository.delete(order); // Rollback order if no valid items
+                log.error("No valid items added to order: {}", order.getId());
+                throw new IllegalStateException("Aucun article valide dans la commande");
+            } catch (Exception e) {
+                log.error("Failed to rollback order {}: {}", order.getId(), e.getMessage());
+                throw new RuntimeException("Erreur lors de l'annulation de la commande", e);
+            }
         }
 
         // Clear the cart
-        cart.getItems().clear();
-        cartRepository.save(cart);
-        log.info("Cart cleared for user: {}", customerId);
+        try {
+            cart.getItems().clear();
+            cartRepository.save(cart);
+            log.info("Cart cleared for user: {}", customerId);
+        } catch (Exception e) {
+            log.error("Failed to clear cart for user {}: {}", customerId, e.getMessage());
+            throw new RuntimeException("Erreur lors de la suppression du panier", e);
+        }
 
         return convertToOrderResponse(order);
     }
@@ -245,8 +266,13 @@ public class OrderServiceImpl implements OrderService {
                     return new ResourceNotFoundException("Commande non trouvée");
                 });
         order.setStatus(status);
-        order = orderRepository.save(order);
-        log.info("Order {} status updated to {}", orderId, status);
+        try {
+            order = orderRepository.save(order);
+            log.info("Order {} status updated to {}", orderId, status);
+        } catch (Exception e) {
+            log.error("Failed to update order status for order {}: {}", orderId, e.getMessage());
+            throw new RuntimeException("Erreur lors de la mise à jour du statut de la commande", e);
+        }
         return convertToOrderResponse(order);
     }
 
@@ -281,8 +307,13 @@ public class OrderServiceImpl implements OrderService {
                 });
 
         order.setStatus(OrderStatus.IN_PROGRESS);
-        orderRepository.save(order);
-        log.info("Order {} status updated to IN_PROGRESS", orderId);
+        try {
+            orderRepository.save(order);
+            log.info("Order {} status updated to IN_PROGRESS", orderId);
+        } catch (Exception e) {
+            log.error("Failed to update order status for order {}: {}", orderId, e.getMessage());
+            throw new RuntimeException("Erreur lors de la mise à jour du statut de la commande", e);
+        }
 
         Delivery delivery = Delivery.builder()
                 .order(order)
@@ -290,8 +321,13 @@ public class OrderServiceImpl implements OrderService {
                 .status(DeliveryStatus.ASSIGNED)
                 .build();
 
-        deliveryRepository.save(delivery);
-        log.info("Delivery created for order {} with deliverer {}", orderId, delivererId);
+        try {
+            deliveryRepository.save(delivery);
+            log.info("Delivery created for order {} with deliverer {}", orderId, delivererId);
+        } catch (Exception e) {
+            log.error("Failed to save delivery for order {}: {}", orderId, e.getMessage());
+            throw new RuntimeException("Erreur lors de l'enregistrement de la livraison", e);
+        }
 
         return convertToOrderResponse(order);
     }
@@ -315,8 +351,13 @@ public class OrderServiceImpl implements OrderService {
 
         if (order.getStatus().canBeCancelled()) {
             order.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
-            log.info("Order cancelled: {}", orderId);
+            try {
+                orderRepository.save(order);
+                log.info("Order cancelled: {}", orderId);
+            } catch (Exception e) {
+                log.error("Failed to cancel order {}: {}", orderId, e.getMessage());
+                throw new RuntimeException("Erreur lors de l'annulation de la commande", e);
+            }
         } else {
             log.warn("Attempt to cancel order in non-cancellable status: {}", order.getStatus());
             throw new IllegalStateException("La commande ne peut pas être annulée dans son état actuel");

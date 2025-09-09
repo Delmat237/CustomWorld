@@ -1,10 +1,10 @@
 package com.customworld.controller;
 
 import com.customworld.dto.request.OrderCreationRequest;
-import com.customworld.dto.request.EmailRequest;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.dto.response.ContextResponse;
+import com.customworld.dto.request.EmailRequest;
 import com.customworld.dto.response.ApiResponseWrapper;
 import com.customworld.dto.response.CartResponse;
 import com.customworld.dto.response.CategoryResponse;
@@ -117,19 +117,21 @@ public class CustomerController {
     @Operation(summary = "Crée une nouvelle commande à partir du panier de l'utilisateur")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Commande créée avec succès"),
-            @ApiResponse(responseCode = "400", description = "Panier vide ou utilisateur non trouvé"),
+            @ApiResponse(responseCode = "400", description = "Panier vide, utilisateur non trouvé ou données invalides"),
             @ApiResponse(responseCode = "500", description = "Erreur serveur")
     })
     public ResponseEntity<ApiResponseWrapper> createOrder(@RequestBody OrderCreationRequest orderRequest) {
         try {
             User user = UserInterceptor.getAuthenticatedUser(userRepository);
+            log.info("Creating order for user: {}", user.getId());
             OrderResponse orderResponse = orderService.createOrderFromCart(user.getId(), orderRequest);
 
             String itemsDescription = orderResponse.getItems().stream()
-                    .map(item -> item.getProductName() + " (ID: " + item.getProductId() + ", Personnalisé: " + item.isCustomized() + ")")
+                    .map(item -> item.getProductName() + " (ID: " + item.getProductId() + 
+                                 ", Personnalisé: " + item.isCustomized() + ", Quantité: " + item.getQuantity() + ")")
                     .collect(Collectors.joining("\n"));
 
-           EmailRequest emailRequest = new EmailRequest();
+            EmailRequest emailRequest = new EmailRequest();
             emailRequest.setEmail( user.getEmail());
             emailRequest.setSubject( "Confirmation de votre commande #" + orderResponse.getId());
             emailRequest.setMessage( "Bonjour " + user.getName() + ",\n\n" +
@@ -149,10 +151,11 @@ public class CustomerController {
             }
 
             return ResponseEntity.ok(new ApiResponseWrapper(true, "Commande créée avec succès", orderResponse));
-        } catch (ResourceNotFoundException | IllegalStateException e) {
+        } catch (ResourceNotFoundException | IllegalStateException | IllegalArgumentException e) {
+            log.warn("Bad request during order creation: {}", e.getMessage());
             return ResponseEntity.badRequest().body(new ApiResponseWrapper(false, e.getMessage()));
         } catch (Exception e) {
-            log.error("Erreur lors de la création de la commande: {}", e.getMessage());
+            log.error("Server error during order creation: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(new ApiResponseWrapper(false, "Erreur serveur"));
         }
     }
@@ -190,12 +193,13 @@ public class CustomerController {
             }
 
             String itemsDescription = orderResponse.getItems().stream()
-                    .map(item -> item.getProductName() + " (ID: " + item.getProductId() + ", Personnalisé: " + item.isCustomized() + ")")
+                    .map(item -> item.getProductName() + " (ID: " + item.getProductId() + 
+                                 ", Personnalisé: " + item.isCustomized() + ", Quantité: " + item.getQuantity() + ")")
                     .collect(Collectors.joining("\n"));
 
             EmailRequest emailRequest = new EmailRequest();
             emailRequest.setEmail( user.getEmail());
-            emailRequest.setSubject( "Détails de votre commande #" + orderId);
+            emailRequest.setSubject("Détails de votre commande #" + orderId);
             emailRequest.setMessage( "Bonjour " + user.getName() + ",\n\n" +
                     "Vous avez consulté les détails de votre commande #" + orderId + ".\n" +
                     "Statut: " + orderResponse.getStatus() + "\n" +
@@ -213,10 +217,11 @@ public class CustomerController {
             }
 
             return ResponseEntity.ok(new ApiResponseWrapper(true, "Commande récupérée avec succès", orderResponse));
-        } catch (ResourceNotFoundException | IllegalStateException e) {
+        } catch (ResourceNotFoundException | IllegalStateException | IllegalArgumentException e) {
+            log.warn("Bad request during order retrieval: {}", e.getMessage());
             return ResponseEntity.badRequest().body(new ApiResponseWrapper(false, e.getMessage()));
         } catch (Exception e) {
-            log.error("Erreur lors de la récupération de la commande {}: {}", orderId, e.getMessage());
+            log.error("Server error during order retrieval {}: {}", orderId, e.getMessage(), e);
             return ResponseEntity.status(500).body(new ApiResponseWrapper(false, "Erreur serveur"));
         }
     }
