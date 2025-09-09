@@ -1,6 +1,7 @@
 package com.customworld.controller;
 
 import com.customworld.dto.request.CategoryRequest;
+import com.customworld.dto.request.EmailRequest;
 import com.customworld.dto.request.ProductRequest;
 import com.customworld.dto.request.RegisterRequest;
 import com.customworld.dto.response.ApiResponseWrapper;
@@ -203,10 +204,12 @@ public class AdminController {
 public ResponseEntity<ApiResponseWrapper> getOrderById(@PathVariable Long orderId) {
     try {
         OrderResponse orderResponse = orderService.getOrderById(orderId);
-        Map<String, String> emailRequest = new HashMap<>();
-        emailRequest.put("email", "admin@example.com");
-        emailRequest.put("subject", "Consultation de la commande #" + orderId);
-        emailRequest.put("message", "Commande #" + orderId + " consultée.\n" +
+        // Envoyer une notification par email à l'administrateur
+        EmailRequest emailRequest = new EmailRequest();
+     
+        emailRequest.setEmail( "customworld25@gmail.com");
+        emailRequest.setSubject("Consultation de la commande #" + orderId);
+        emailRequest.setMessage("Commande #" + orderId + " consultée.\n" +
                 "Statut: " + orderResponse.getStatus() + "\n" +
                 "Client ID: " + orderResponse.getCustomerId() + "\n" +
                 "Produit: " + orderResponse.getProductId() + "\n" +

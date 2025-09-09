@@ -1,6 +1,7 @@
 package com.customworld.controller;
 
 import com.customworld.dto.request.CustomOrderRequest;
+import com.customworld.dto.request.EmailRequest;
 import com.customworld.dto.response.OrderResponse;
 import com.customworld.dto.response.ProductResponse;
 import com.customworld.dto.response.ContextResponse;
@@ -190,10 +191,12 @@ public ResponseEntity<ApiResponseWrapper> getOrderById(@PathVariable Long orderI
                     .body(new ApiResponseWrapper(false, "Accès non autorisé à cette commande"));
         }
 
-        Map<String, String> emailRequest = new HashMap<>();
-        emailRequest.put("email", user.getEmail());
-        emailRequest.put("subject", "Détails de votre commande #" + orderId);
-        emailRequest.put("message", "Bonjour " + user.getName() + ",\n\n" +
+      // Envoyer une notification par email à l'administrateur
+        EmailRequest emailRequest = new EmailRequest();
+     
+        emailRequest.setEmail( user.getEmail());
+        emailRequest.setSubject("Détails de votre commande  #" + orderId);
+        emailRequest.setMessage( "Bonjour " + user.getName() + ",\n\n" +
                 "Vous avez consulté les détails de votre commande #" + orderId + ".\n" +
                 "Statut: " + orderResponse.getStatus() + "\n" +
                 "Adresse de livraison: " + orderResponse.getDeliveryAddress() + "\n" +

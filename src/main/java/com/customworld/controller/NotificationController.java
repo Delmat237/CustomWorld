@@ -1,5 +1,6 @@
 package com.customworld.controller;
 
+import com.customworld.dto.request.EmailRequest;
 import com.customworld.dto.response.ApiResponseWrapper;
 import com.customworld.service.EmailService;
 import com.customworld.service.SmsService;
@@ -52,10 +53,11 @@ public class NotificationController {
             @ApiResponse(responseCode = "500", description = "Erreur lors de l'envoi de l'email")
     })
     @PostMapping("/send-email")
-    public ResponseEntity<ApiResponseWrapper> sendEmail(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        String subject = request.get("subject");
-        String message = request.get("message");
+    public ResponseEntity<ApiResponseWrapper> sendEmail(@RequestParam EmailRequest request) {
+
+        String email = request.getEmail();
+        String subject = request.getSubject();
+        String message = request.getMessage();
 
         if (email == null || subject == null || message == null) {
             return ResponseEntity.badRequest()
