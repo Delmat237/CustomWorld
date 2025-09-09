@@ -53,11 +53,11 @@ public class NotificationController {
             @ApiResponse(responseCode = "500", description = "Erreur lors de l'envoi de l'email")
     })
     @PostMapping("/send-email")
-    public ResponseEntity<ApiResponseWrapper> sendEmail(@RequestParam EmailRequest request) {
+    public ResponseEntity<ApiResponseWrapper> sendEmail(@RequestParam EmailRequest emailRequest) {
 
-        String email = request.getEmail();
-        String subject = request.getSubject();
-        String message = request.getMessage();
+        String email = emailRequest.getEmail();
+        String subject = emailRequest.getSubject();
+        String message = emailRequest.getMessage();
 
         if (email == null || subject == null || message == null) {
             return ResponseEntity.badRequest()
