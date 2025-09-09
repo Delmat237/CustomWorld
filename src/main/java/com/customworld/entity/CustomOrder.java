@@ -15,7 +15,7 @@ import java.util.List;
  * Entité représentant une commande dans le système.
  */
 @Entity
-@Table(name = "orders")
+@Table(name = "custom_orders")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
