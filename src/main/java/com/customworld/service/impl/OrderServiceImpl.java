@@ -1,19 +1,21 @@
 package com.customworld.service.impl;
 
-import com.customworld.dto.request.CustomOrderRequest;
+import com.customworld.dto.request.OrderCreationRequest;
+import com.customworld.dto.response.OrderItemResponse;
 import com.customworld.dto.response.OrderResponse;
+import com.customworld.entity.Cart;
+import com.customworld.entity.CartItem;
 import com.customworld.entity.CustomOrder;
 import com.customworld.entity.OrderItem;
-import com.customworld.entity.Product;
 import com.customworld.entity.User;
 import com.customworld.entity.Delivery;
 import com.customworld.enums.DeliveryStatus;
 import com.customworld.enums.OrderStatus;
 import com.customworld.enums.UserRole;
 import com.customworld.exception.ResourceNotFoundException;
+import com.customworld.repository.CartRepository;
 import com.customworld.repository.CustomOrderRepository;
 import com.customworld.repository.OrderItemRepository;
-import com.customworld.repository.ProductRepository;
 import com.customworld.repository.UserRepository;
 import com.customworld.repository.DeliveryRepository;
 import com.customworld.service.OrderService;
@@ -23,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -36,43 +40,82 @@ public class OrderServiceImpl implements OrderService {
 
     private final CustomOrderRepository orderRepository;
     private final UserRepository userRepository;
-    private final ProductRepository productRepository;
+    private final CartRepository cartRepository;
     private final OrderItemRepository orderItemRepository;
     private final DeliveryRepository deliveryRepository;
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     public OrderServiceImpl(CustomOrderRepository orderRepository,
                             UserRepository userRepository,
-                            ProductRepository productRepository,
+                            CartRepository cartRepository,
                             OrderItemRepository orderItemRepository,
                             DeliveryRepository deliveryRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
-        this.productRepository = productRepository;
+        this.cartRepository = cartRepository;
         this.orderItemRepository = orderItemRepository;
         this.deliveryRepository = deliveryRepository;
     }
 
     /**
-     * Crée une nouvelle commande à partir d'une requête.
+     * Crée une commande à partir du panier de l'utilisateur.
      *
-     * @param orderRequest Requête de création de commande
+     * @param customerId ID du client
+     * @param orderRequest Requête contenant les informations de livraison
      * @return OrderResponse contenant les détails de la commande créée
      */
     @Override
-    public OrderResponse createOrder(CustomOrderRequest orderRequest) {
-        User customer = userRepository.findById(orderRequest.getCustomerId())
+    public OrderResponse createOrderFromCart(Long customerId, OrderCreationRequest orderRequest) {
+        // Validate customer
+        if (customerId == null || customerId <= 0) {
+            log.error("Invalid customer ID: {}", customerId);
+            throw new IllegalArgumentException("ID du client invalide");
+        }
+        User customer = userRepository.findById(customerId)
                 .orElseThrow(() -> {
-                    log.error("Customer not found: {}", orderRequest.getCustomerId());
+                    log.error("Customer not found: {}", customerId);
                     return new ResourceNotFoundException("Client non trouvé");
                 });
 
-        Product product = productRepository.findById(orderRequest.getProductId())
+        // Validate order request
+        if (orderRequest == null || orderRequest.getDeliveryAddress() == null || orderRequest.getDeliveryAddress().trim().isEmpty()) {
+            log.error("Invalid delivery address for customer: {}", customerId);
+            throw new IllegalArgumentException("Adresse de livraison requise");
+        }
+        if (orderRequest.getModeLivraison() == null || orderRequest.getModeLivraison() <= 0) {
+            log.error("Invalid delivery mode for customer: {}", customerId);
+            throw new IllegalArgumentException("Mode de livraison invalide");
+        }
+        if (orderRequest.getPhone() == null || orderRequest.getPhone().trim().isEmpty()) {
+            log.error("Invalid phone number for customer: {}", customerId);
+            throw new IllegalArgumentException("Numéro de téléphone requis");
+        }
+
+        // Fetch and validate cart
+        Cart cart = cartRepository.findByUserId(customerId)
                 .orElseThrow(() -> {
-                    log.error("Product not found: {}", orderRequest.getProductId());
-                    return new ResourceNotFoundException("Produit non trouvé");
+                    log.error("Cart not found for user: {}", customerId);
+                    return new ResourceNotFoundException("Panier non trouvé");
                 });
 
+        List<CartItem> cartItems = cart.getItems();
+        if (cartItems == null || cartItems.isEmpty()) {
+            log.error("Cart is empty for user: {}", customerId);
+            throw new IllegalStateException("Le panier est vide");
+        }
+
+        // Calculate total amount
+        Double totalAmount = cartItems.stream()
+                .filter(item -> item.getProduct() != null && item.getProduct().getPrice() != null)
+                .map(item -> item.getProduct().getPrice() * item.getQuantity())
+                .reduce(0.0, Double::sum);
+
+        if (totalAmount <= 0) {
+            log.error("Invalid total amount for order: {}", totalAmount);
+            throw new IllegalStateException("Le montant total de la commande est invalide");
+        }
+
+        // Create order
         CustomOrder order = CustomOrder.builder()
                 .customer(customer)
                 .status(OrderStatus.PENDING)
@@ -80,23 +123,44 @@ public class OrderServiceImpl implements OrderService {
                 .deliveryAddress(orderRequest.getDeliveryAddress())
                 .modeLivraison(orderRequest.getModeLivraison())
                 .phone(orderRequest.getPhone())
-                .amount(product.getPrice()) // Use product price as amount
-                .currency("XAF") // Default currency
-                .transactionId("txn_" + System.currentTimeMillis()) // Generate transactionId
+                .amount(totalAmount)
+                .currency("USD") // Default currency
+                .transactionId("txn_" + System.currentTimeMillis()) // Generated transactionId
+                .items(new ArrayList<>())
                 .build();
 
         order = orderRepository.save(order);
         log.info("Order created: {}", order.getId());
 
-        OrderItem orderItem = OrderItem.builder()
-                .order(order)
-                .product(product)
-                .imagePath(orderRequest.getImagePath())
-                .isCustomized(false) // Default to false, adjust if needed
-                .build();
+        // Create OrderItems from CartItems
+        for (CartItem cartItem : cartItems) {
+            if (cartItem.getProduct() == null) {
+                log.warn("Skipping cart item with null product for order: {}", order.getId());
+                continue;
+            }
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .product(cartItem.getProduct())
+                    .quantity(cartItem.getQuantity())
+                    .imagePath(cartItem.getProduct().getImagePath())
+                    .isCustomized(cartItem.isCustomized())
+                    .build();
+            order.getItems().add(orderItem);
+            orderItemRepository.save(orderItem);
+            log.info("Order item added: product {} to order: {}", cartItem.getProduct().getId(), order.getId());
+        }
 
-        orderItemRepository.save(orderItem);
-        log.info("Order item added: {} to order: {}", product.getId(), order.getId());
+        // Verify order items
+        if (order.getItems().isEmpty()) {
+            orderRepository.delete(order); // Rollback order if no valid items
+            log.error("No valid items added to order: {}", order.getId());
+            throw new IllegalStateException("Aucun article valide dans la commande");
+        }
+
+        // Clear the cart
+        cart.getItems().clear();
+        cartRepository.save(cart);
+        log.info("Cart cleared for user: {}", customerId);
 
         return convertToOrderResponse(order);
     }
@@ -137,6 +201,10 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public List<OrderResponse> getOrdersByCustomer(Long customerId) {
+        if (customerId == null || customerId <= 0) {
+            log.error("Invalid customer ID: {}", customerId);
+            throw new IllegalArgumentException("ID du client invalide");
+        }
         return orderRepository.findByCustomerId(customerId).stream()
                 .map(this::convertToOrderResponse)
                 .collect(Collectors.toList());
@@ -163,6 +231,14 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus status) {
+        if (orderId == null || orderId <= 0) {
+            log.error("Invalid order ID for status update: {}", orderId);
+            throw new IllegalArgumentException("ID de commande invalide");
+        }
+        if (status == null) {
+            log.error("Invalid status for order: {}", orderId);
+            throw new IllegalArgumentException("Statut de commande invalide");
+        }
         CustomOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> {
                     log.error("Order not found for status update: {}", orderId);
@@ -183,6 +259,14 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public OrderResponse assignOrderToDeliverer(Long orderId, Long delivererId) {
+        if (orderId == null || orderId <= 0) {
+            log.error("Invalid order ID for assignment: {}", orderId);
+            throw new IllegalArgumentException("ID de commande invalide");
+        }
+        if (delivererId == null || delivererId <= 0) {
+            log.error("Invalid deliverer ID for order: {}", orderId);
+            throw new IllegalArgumentException("ID du livreur invalide");
+        }
         CustomOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> {
                     log.error("Order not found for assignment: {}", orderId);
@@ -219,6 +303,10 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void cancelOrder(Long orderId) {
+        if (orderId == null || orderId <= 0) {
+            log.error("Invalid order ID for cancellation: {}", orderId);
+            throw new IllegalArgumentException("ID de commande invalide");
+        }
         CustomOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> {
                     log.error("Order not found for cancellation: {}", orderId);
@@ -242,17 +330,20 @@ public class OrderServiceImpl implements OrderService {
      * @return OrderResponse DTO converti
      */
     private OrderResponse convertToOrderResponse(CustomOrder order) {
-        List<OrderItem> items = order.getItems();
-        Long productId = items != null && !items.isEmpty() ? items.get(0).getProduct().getId() : null;
-        String productName =  items != null && !items.isEmpty() ? items.get(0).getProduct().getName() : null;
-        String imagePath =  items != null && !items.isEmpty() ? items.get(0).getProduct().getImagePath() : null;
+        List<OrderItemResponse> itemResponses = order.getItems().stream()
+                .filter(Objects::nonNull)
+                .map(item -> OrderItemResponse.builder()
+                        .productId(item.getProduct() != null ? item.getProduct().getId() : null)
+                        .productName(item.getProduct() != null ? item.getProduct().getName() : null)
+                        .imagePath(item.getImagePath())
+                        .isCustomized(item.isCustomized())
+                        .quantity(item.getQuantity())
+                        .build())
+                .collect(Collectors.toList());
 
         return OrderResponse.builder()
                 .id(order.getId())
-                .customerId(order.getCustomer().getId())
-                .productId(productId)
-                .productName(productName)
-                .imagePath(imagePath)
+                .customerId(order.getCustomer() != null ? order.getCustomer().getId() : null)
                 .deliveryAddress(order.getDeliveryAddress())
                 .status(order.getStatus())
                 .orderDate(order.getOrderDate())
@@ -261,6 +352,7 @@ public class OrderServiceImpl implements OrderService {
                 .transactionId(order.getTransactionId())
                 .modeLivraison(order.getModeLivraison())
                 .phone(order.getPhone())
+                .items(itemResponses)
                 .build();
     }
 }

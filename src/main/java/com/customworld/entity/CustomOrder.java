@@ -1,65 +1,60 @@
 package com.customworld.entity;
 
 import com.customworld.enums.OrderStatus;
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Représente une commande client dans le système.
- * Contient toutes les informations relatives à une transaction commerciale.
+ * Entité représentant une commande dans le système.
  */
 @Entity
+@Table(name = "orders")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "custom_orders")
 public class CustomOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * Client associé à la commande.
-     * Relation many-to-one: plusieurs commandes peuvent appartenir à un client.
-     */
     @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
-    private Double amount;
-    @Builder.Default
-    private String currency="XAF";
-    /**
-     * Liste des articles dans la commande.
-     * Cascade : les opérations sur la commande affectent ses articles.
-     */
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItem> items;
-
-    /**
-     * État actuel de la commande (ex: CREATED, PAID, SHIPPED)
-     */
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    /**
-     * Date/heure de création de la commande.
-     * Valeur par défaut: timestamp de création
-     */
+    @Column(name = "order_date")
     private LocalDateTime orderDate;
 
-    private String transactionId;
-    /**
-     * Adresse de livraison complète
-     */
+    @Column(name = "delivery_address")
     private String deliveryAddress;
 
+    @Column(name = "mode_livraison")
     private Long modeLivraison;
+
+    @Column(name = "phone")
     private String phone;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
+
+    @Column(name = "amount")
+    private Double amount;
+
+    @Column(name = "currency")
+    private String currency;
+
+    @Column(name = "transaction_id")
+    private String transactionId;
 }

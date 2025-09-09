@@ -255,7 +255,6 @@ public  class AdminServiceImpl implements AdminService {
         return OrderResponse.builder()
                 .id(order.getId())
                 .customerId(order.getCustomer().getId())
-                .productId(firstProduct != null ? firstProduct.getId() : null)
                 .deliveryAddress(order.getDeliveryAddress())
                 .status(order.getStatus())
                 .orderDate(order.getOrderDate())

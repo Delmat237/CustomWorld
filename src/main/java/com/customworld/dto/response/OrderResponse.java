@@ -1,13 +1,13 @@
 package com.customworld.dto.response;
 
-import java.time.LocalDateTime;
-
 import com.customworld.enums.OrderStatus;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO représentant la réponse d'une commande.
@@ -21,9 +21,6 @@ public class OrderResponse {
 
     private Long id;
     private Long customerId;
-    private Long productId;
-    private String productName;
-    private String imagePath;
     private String deliveryAddress;
     private OrderStatus status;
     private LocalDateTime orderDate;
@@ -32,5 +29,5 @@ public class OrderResponse {
     private String transactionId;
     private Long modeLivraison;
     private String phone;
-
+    private List<OrderItemResponse> items;
 }

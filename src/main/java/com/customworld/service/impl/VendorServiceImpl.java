@@ -263,7 +263,6 @@ public class VendorServiceImpl implements VendorService {
         return OrderResponse.builder()
                 .id(order.getId())
                 .customerId(order.getCustomer().getId())
-                .productId(order.getProduct().getId())
                 .amount(order.getAmount())
                 .currency(order.getCurrency())
                 .transactionId(order.getTransactionId())

@@ -191,7 +191,6 @@ public  class CustomerServiceImpl implements CustomerService {
         return OrderResponse.builder()
                 .id(order.getId())
                 .customerId(order.getCustomer().getId())
-                .productId(product.getId())
                 .deliveryAddress(order.getDeliveryAddress())
                 .status(order.getStatus())
                 .orderDate(order.getOrderDate())
