@@ -244,11 +244,15 @@ public class OrderServiceImpl implements OrderService {
     private OrderResponse convertToOrderResponse(CustomOrder order) {
         List<OrderItem> items = order.getItems();
         Long productId = items != null && !items.isEmpty() ? items.get(0).getProduct().getId() : null;
+        String productName =  items != null && !items.isEmpty() ? items.get(0).getProduct().getName() : null;
+        String imagePath =  items != null && !items.isEmpty() ? items.get(0).getProduct().getImagePath() : null;
 
         return OrderResponse.builder()
                 .id(order.getId())
                 .customerId(order.getCustomer().getId())
                 .productId(productId)
+                .productName(productName)
+                .imagePath(imagePath)
                 .deliveryAddress(order.getDeliveryAddress())
                 .status(order.getStatus())
                 .orderDate(order.getOrderDate())
