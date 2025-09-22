@@ -59,6 +59,7 @@ public class PaymentService {
         requestBody.put("customer", customer); 
         requestBody.put("description", paymentRequest.getDescription());
         requestBody.put("callback", notchpayCallBackUrl);
+         requestBody.put("reference",paymentRequest.getReference());
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 

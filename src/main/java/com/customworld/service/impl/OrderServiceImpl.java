@@ -124,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
                 .modeLivraison(orderRequest.getModeLivraison())
                 .phone(orderRequest.getPhone())
                 .amount(totalAmount)
-                .currency("USD") // Default currency
+                .currency("XAF") // Default currency
                 .transactionId("txn_" + System.currentTimeMillis()) // Generated transactionId
                 .items(new ArrayList<>())
                 .build();

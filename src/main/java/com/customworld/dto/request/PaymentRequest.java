@@ -17,4 +17,5 @@ public class PaymentRequest {
     private String customerAddress;
     private String customerCity;
     private String customerZipCode;
+    private String reference;
 }
