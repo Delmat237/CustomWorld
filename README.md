@@ -16,6 +16,8 @@ CustomWorld Backend est une application Spring Boot conçue pour gérer une plat
 11. [Contact](#contact)
 12. [Licence](#licence)
 
+Guide complet de deploiement VPS : [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Fonctionnalités
 - **Vue Client** :
     - Consulter les produits disponibles.
@@ -240,11 +242,20 @@ customworld-backend/
     - Le fichier `data.sql` initialise des catégories et des utilisateurs de test (mot de passe par défaut : `password`, haché avec BCrypt).
 
 ## Utilisation
-1. **Accéder à l'API** :
-    - L'API est disponible à `http://localhost:8080/api`.
-    - Consultez la documentation Swagger à `http://localhost:8080/swagger-ui/index.html`.
+1. **Lancer avec Docker** :
+   ```bash
+   docker compose up --build
+   ```
+   Pour laisser les conteneurs tourner en arrière-plan :
+   ```bash
+   docker compose up --build -d
+   ```
 
-2. **Endpoints principaux** :
+2. **Accéder à l'API** :
+    - L'API est disponible à `http://localhost:8081/api`.
+    - Consultez la documentation Swagger à `http://localhost:8081/swagger-ui/index.html`.
+
+3. **Endpoints principaux** :
     - **Authentification** :
         - `POST /api/auth/login` : Connexion (retourne un access token et un refresh token).
         - `POST /api/auth/register` : Inscription d'un nouvel utilisateur (envoie un email et, optionnellement, un SMS de bienvenue).
@@ -270,15 +281,15 @@ customworld-backend/
         - `PUT /api/admin/orders/{id}/assign?delivererId={id}` : Assigner une commande à un livreur.
         - `PUT /api/admin/products/{id}/validate` : Valider un produit.
 
-3. **Authentification** :
+4. **Authentification** :
     - Obtenez un token JWT via `/api/auth/login`.
     - Incluez le token dans l'en-tête des requêtes : `Authorization: Bearer <accessToken>`.
 
-4. **Upload de fichiers** :
+5. **Upload de fichiers** :
     - Utilisez `/api/files/upload` pour uploader des images (max 10MB).
     - Récupérez les fichiers via `/api/files/{fileName}`.
 
-5. **Notifications** :
+6. **Notifications** :
     - Les emails sont envoyés pour l'inscription et la réinitialisation de mot de passe.
     - Les SMS (optionnels) sont envoyés lors de l'inscription si un numéro de téléphone est fourni.
 
