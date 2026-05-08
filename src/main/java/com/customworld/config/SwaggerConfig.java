@@ -5,14 +5,21 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
 
     private static final String SECURITY_SCHEME_NAME = "bearerAuth" ;
+
+    @Value("${customworld.openapi.server-url}")
+    private String openApiServerUrl;
 
     @Bean
     public GroupedOpenApi publicApi() {
@@ -25,6 +32,9 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
+                .servers(List.of(new Server()
+                        .url(openApiServerUrl)
+                        .description("Production server")))
                 .info(new Info()
                         .title("CustomWorld API")
                         .version("1.0")
