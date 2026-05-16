@@ -27,4 +27,7 @@ public class Category {
     private String name;
 
     private String description;
+
+    @Column(name = "cover_image_url")
+    private String coverImageUrl;
 }

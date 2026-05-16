@@ -5,12 +5,10 @@ import com.customworld.dto.response.PaymentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,10 +27,10 @@ public class PaymentService {
     @Value("${notchpay.callback-url}")
     private  String notchpayCallBackUrl;//="https://customworld.onrender.com/api/payments/notify";
 
-    private final RestTemplate restTemplate;
+    private final WebClient.Builder webClientBuilder;
 
-    public PaymentService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public PaymentService(WebClient.Builder webClientBuilder) {
+        this.webClientBuilder = webClientBuilder;
     }
 
     private class Customer {
@@ -43,10 +41,6 @@ public class PaymentService {
 
     public PaymentResponse initiatePayment(PaymentRequest paymentRequest) {
         log.info("Initiating payment with request: {}", paymentRequest);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization",   apiKey);
 
         Customer customer = new Customer();
         customer.name = paymentRequest.getCustomerName() + " " + paymentRequest.getCustomerSurname();
@@ -61,22 +55,25 @@ public class PaymentService {
         requestBody.put("callback", notchpayCallBackUrl);
          requestBody.put("reference",paymentRequest.getReference());
 
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
         try {
-            PaymentResponse response = restTemplate.postForObject(
-                notchpayBaseUrl + "/payments", // Endpoint correct
-                entity,
-                PaymentResponse.class
-            );
+            PaymentResponse response = webClientBuilder.baseUrl(notchpayBaseUrl)
+                    .build()
+                    .post()
+                    .uri("/payments")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", apiKey)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(PaymentResponse.class)
+                    .block();
 
-            if (response.getCode()==201) {
+            if (response != null && response.getCode()==201) {
                 log.info("Payment initiated successfully: {}", response);
             } else {
                 log.warn("No response from Notch Pay");
             }
             return response;
-        } catch (HttpClientErrorException e) {
+        } catch (WebClientResponseException e) {
             log.error("Error initiating payment: {} - {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
             PaymentResponse response = new PaymentResponse();
             response.setStatus(e.getStatusText());

@@ -64,7 +64,7 @@ public class VendorServiceImpl implements VendorService {
         User vendor = com.utils.UserInterceptor.getAuthenticatedUser(userRepository);
 
         Category category = categoryRepository.findByName(productRequest.getCategory())
-                .orElseGet(() -> createNewCategory(productRequest.getCategory()));
+                .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée"));
 
         Product product = Product.builder()
                 .name(productRequest.getName())
@@ -145,7 +145,7 @@ public class VendorServiceImpl implements VendorService {
 
         if (!product.getCategory().getName().equals(productRequest.getCategory())) {
             Category category = categoryRepository.findByName(productRequest.getCategory())
-                    .orElseGet(() -> createNewCategory(productRequest.getCategory()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée"));
             product.setCategory(category);
         }
 
@@ -268,14 +268,6 @@ public class VendorServiceImpl implements VendorService {
                 .transactionId(order.getTransactionId())
                 .status(order.getStatus())
                 .build();
-    }
-
-    private Category createNewCategory(String categoryName) {
-        Category newCategory = new Category();
-        newCategory.setName(categoryName);
-        newCategory = categoryRepository.save(newCategory);
-        log.info("New category created: {}", categoryName);
-        return newCategory;
     }
 
 }

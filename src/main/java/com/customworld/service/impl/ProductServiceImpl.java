@@ -72,6 +72,7 @@ public class ProductServiceImpl implements ProductService {
                 .map(category -> CategoryResponse.builder()
                         .id(category.getId())
                         .name(category.getName())
+                        .coverImageUrl(category.getCoverImageUrl())
                         .build())
                 .collect(Collectors.toList());
     }

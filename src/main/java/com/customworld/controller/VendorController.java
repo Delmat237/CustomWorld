@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import com.customworld.enums.OrderStatus;
 import java.util.List;
@@ -51,8 +52,8 @@ public class VendorController {
             @ApiResponse(responseCode = "404", description = "Vendeur non trouvé")
     })
     @PreAuthorize("hasRole('VENDOR')")
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest productRequest) {
-        return ResponseEntity.ok(vendorService.createProduct(productRequest));
+    public Mono<ResponseEntity<ProductResponse>> createProduct(@RequestBody ProductRequest productRequest) {
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.createProduct(productRequest)));
     }
 
     /**
@@ -69,8 +70,8 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @PostMapping("/products/image")
-    public ResponseEntity<String> uploadProductImage(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(vendorService.uploadImage(file));
+    public Mono<ResponseEntity<String>> uploadProductImage(@RequestParam("file") MultipartFile file) {
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.uploadImage(file)));
     }
 
     /**
@@ -87,8 +88,8 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @GetMapping("/products")
-    public ResponseEntity<List<ProductResponse>> getVendorProducts(@RequestParam Long vendorId) {
-        return ResponseEntity.ok(vendorService.getProductsByVendor(vendorId));
+    public Mono<ResponseEntity<List<ProductResponse>>> getVendorProducts(@RequestParam Long vendorId) {
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.getProductsByVendor(vendorId)));
     }
 
     /**
@@ -105,8 +106,8 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @GetMapping("/products/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(vendorService.getProductById(id));
+    public Mono<ResponseEntity<ProductResponse>> getProductById(@PathVariable Long id) {
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.getProductById(id)));
     }
 
     /**
@@ -123,8 +124,8 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @GetMapping("/products/paged")
-    public ResponseEntity<List<ProductResponse>> getVendorProductsPaged(Pageable pageable) {
-        return ResponseEntity.ok(vendorService.getVendorProducts(pageable));
+    public Mono<ResponseEntity<List<ProductResponse>>> getVendorProductsPaged(Pageable pageable) {
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.getVendorProducts(pageable)));
     }
 
     /**
@@ -142,10 +143,10 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @PutMapping("/products/{productId}")
-    public ResponseEntity<ProductResponse> updateProduct(
+    public Mono<ResponseEntity<ProductResponse>> updateProduct(
             @PathVariable Long productId,
             @RequestBody ProductRequest productRequest) {
-        return ResponseEntity.ok(vendorService.updateProduct(productId, productRequest));
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.updateProduct(productId, productRequest)));
     }
 
     /**
@@ -162,9 +163,9 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @DeleteMapping("/products/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
-        vendorService.deleteProduct(productId);
-        return ResponseEntity.ok().build();
+    public Mono<ResponseEntity<Void>> deleteProduct(@PathVariable Long productId) {
+        return Mono.fromRunnable(() -> vendorService.deleteProduct(productId))
+                .thenReturn(ResponseEntity.ok().<Void>build());
     }
 
    
@@ -184,10 +185,10 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @PutMapping("/orders/{orderId}/status")
-    public ResponseEntity<OrderResponse> updateOrderStatus(
+    public Mono<ResponseEntity<OrderResponse>> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestParam OrderStatus status) {
-        return ResponseEntity.ok(vendorService.updateOrderStatus(orderId, status));
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.updateOrderStatus(orderId, status)));
     }
 
     /**
@@ -202,7 +203,7 @@ public class VendorController {
     })
     @PreAuthorize("hasRole('VENDOR')")
     @GetMapping("/statistics")
-    public ResponseEntity<Object> getVendorStatistics() {
-        return ResponseEntity.ok(vendorService.getVendorStatistics());
+    public Mono<ResponseEntity<Object>> getVendorStatistics() {
+        return Mono.fromSupplier(() -> ResponseEntity.ok(vendorService.getVendorStatistics()));
     }
 }

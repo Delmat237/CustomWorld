@@ -221,7 +221,7 @@ public  class AdminServiceImpl implements AdminService {
 
         if (!product.getCategory().getName().equals(productRequest.getCategory())) {
             Category category = categoryRepository.findByName(productRequest.getCategory())
-                    .orElseGet(() -> createNewCategory(productRequest.getCategory()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée"));
             product.setCategory(category);
         }
 
@@ -403,18 +403,11 @@ public Object getDashboardStatistics() {
     @Override
     public   void assignDeliveryPerson(Long orderId, Long deliveryPersonId){}
 
-    private Category createNewCategory(String categoryName) {
-        Category newCategory = new Category();
-        newCategory.setName(categoryName);
-        newCategory = categoryRepository.save(newCategory);
-        log.info("New category created: {}", categoryName);
-        return newCategory;
-    }
-
 @Override
     public CategoryResponse createCategory(CategoryRequest categoryRequest) {
     Category category = new Category();
     category.setName(categoryRequest.getName());
+    category.setCoverImageUrl(categoryRequest.getCoverImageUrl());
     if (categoryRepository.existsByName(category.getName())) {
         throw new IllegalArgumentException("Cette catégorie existe déjà");
     }
@@ -444,6 +437,9 @@ public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest)
         throw new IllegalArgumentException("Cette catégorie existe déjà");
     }
     category.setName(categoryRequest.getName());
+    if (categoryRequest.getCoverImageUrl() != null && !categoryRequest.getCoverImageUrl().isBlank()) {
+        category.setCoverImageUrl(categoryRequest.getCoverImageUrl());
+    }
     category = categoryRepository.save(category);
     return mapToCategoryResponse(category);
 }
@@ -460,6 +456,7 @@ private CategoryResponse mapToCategoryResponse(Category category) {
     return CategoryResponse.builder()
             .id(category.getId())
             .name(category.getName())
+            .coverImageUrl(category.getCoverImageUrl())
             .build();
 }
 

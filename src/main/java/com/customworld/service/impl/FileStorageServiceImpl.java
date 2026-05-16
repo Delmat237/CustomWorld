@@ -7,9 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -60,6 +62,19 @@ public class FileStorageServiceImpl implements FileStorageService {
         } catch (IOException e) {
             throw new BadRequestException("Impossible de stocker le fichier", e.getMessage());
         }
+    }
+
+    @Override
+    public Mono<String> storeFile(FilePart file) {
+        String fileName = System.currentTimeMillis() + "_" + file.filename();
+        if (file.filename() == null || file.filename().isBlank()) {
+            return Mono.error(new BadRequestException("Le fichier est vide", ""));
+        }
+        if (fileName.contains("..")) {
+            return Mono.error(new BadRequestException("Nom de fichier invalide", ""));
+        }
+        Path targetLocation = this.fileStorageLocation.resolve(fileName);
+        return file.transferTo(targetLocation).thenReturn(fileName);
     }
 
     @Override

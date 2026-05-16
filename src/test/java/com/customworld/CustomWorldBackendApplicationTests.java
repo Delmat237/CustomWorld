@@ -1,15 +1,13 @@
 package com.customworld;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 
-@SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+import static org.assertj.core.api.Assertions.assertThat;
+
 class CustomWorldBackendApplicationTests {
 
-   /*  @Test
-    void contextLoads() {
+    @Test
+    void applicationClassCanBeInstantiated() {
+        assertThat(new CustomWorldBackendApplication()).isNotNull();
     }
-    */
 }
