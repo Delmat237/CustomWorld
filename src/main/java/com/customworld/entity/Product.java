@@ -84,15 +84,6 @@ public class Product {
     @Builder.Default
     private boolean isOnSale= false;
 
-     /*
-      * rating
-      */
-     private Integer rating;
-      /*
-       * reviews
-       */
-      private Integer reviews;
-
     @Column(name = "created_at")
     @Builder.Default
     private Instant createdAt = Instant.now();

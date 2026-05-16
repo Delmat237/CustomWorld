@@ -25,11 +25,12 @@ public class ProductResponse {
     private String imagePath;
     private boolean approved;
     private List<String> color;
-     private Double originalPrice;
+    private Double originalPrice;
     private boolean isNew;
-     private Integer rating;
-      private Integer reviews;
-      private boolean isOnSale;
+    private boolean isOnSale;
+    private Integer rating;
+    private Long likeCount;
+    private Long reviewCount;
     private Instant createdAt;
     private Instant updatedAt;
 

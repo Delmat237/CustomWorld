@@ -18,9 +18,12 @@ import com.customworld.exception.ResourceNotFoundException;
 import com.customworld.repository.CategoryRepository;
 import com.customworld.repository.CustomOrderRepository;
 import com.customworld.repository.DeliveryRepository;
+import com.customworld.repository.ProductLikeRepository;
 import com.customworld.repository.ProductRepository;
+import com.customworld.repository.ProductReviewRepository;
 import com.customworld.repository.UserRepository;
 import com.customworld.service.AdminService;
+import com.customworld.service.ProductInteractionService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -51,19 +54,24 @@ public  class AdminServiceImpl implements AdminService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final DeliveryRepository deliveryRepository;
+    private final ProductLikeRepository likeRepository;
+    private final ProductReviewRepository reviewRepository;
     private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
-
 
     public AdminServiceImpl(UserRepository userRepository,
                             CustomOrderRepository orderRepository,
                             ProductRepository productRepository,
                             DeliveryRepository deliveryRepository,
-                            CategoryRepository categoryRepository) {
+                            CategoryRepository categoryRepository,
+                            ProductLikeRepository likeRepository,
+                            ProductReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.deliveryRepository = deliveryRepository;
         this.categoryRepository = categoryRepository;
+        this.likeRepository = likeRepository;
+        this.reviewRepository = reviewRepository;
     }
     /**
      * Récupère tous les utilisateurs.
@@ -231,9 +239,7 @@ public  class AdminServiceImpl implements AdminService {
         product.setOriginalPrice(productRequest.getOriginalPrice());
         product.setImagePath(productRequest.getImagePath());
         product.setNew(productRequest.isNew());
-        product.setRating(productRequest.getRating());
         product.setColor(productRequest.getColor());
-        product.setReviews(productRequest.getReviews());
         product.setOnSale(productRequest.isOnSale());
         
 
@@ -268,6 +274,8 @@ public  class AdminServiceImpl implements AdminService {
      * @return ProductResponse DTO converti
      */
      private ProductResponse convertToProductResponse(Product product) {
+        long likeCount = likeRepository.countByProductId(product.getId());
+        long reviewCount = reviewRepository.countByProductId(product.getId());
         log.info("Converting product to response: {}", product);
         return ProductResponse.builder()
                 .id(product.getId())
@@ -280,10 +288,13 @@ public  class AdminServiceImpl implements AdminService {
                 .imagePath(product.getImagePath())
                 .approved(product.isApproved())
                 .isNew(product.isNew())
-                .rating(product.getRating())
                 .color(product.getColor())
-                .reviews(product.getReviews())
+                .likeCount(likeCount)
+                .reviewCount(reviewCount)
+                .rating(ProductInteractionService.calculateRating(likeCount))
                 .isOnSale(product.isOnSale())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .build();
     }
 

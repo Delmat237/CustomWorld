@@ -49,13 +49,4 @@ public class ProductRequest {
     */
     private boolean isOnSale;
 
-     /*
-      * rating
-      */
-     private Integer rating;
-      /*
-       * reviews
-       */
-      private Integer reviews;
-
 }

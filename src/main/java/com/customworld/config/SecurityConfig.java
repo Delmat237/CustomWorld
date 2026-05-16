@@ -55,6 +55,10 @@ public class SecurityConfig {
             .authorizeExchange(auth -> auth
                 .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .pathMatchers(AUTH_WHITELIST).permitAll()
+                .pathMatchers(HttpMethod.GET, "/api/products/*/likes", "/api/products/*/reviews").permitAll()
+                .pathMatchers(HttpMethod.GET, "/api/products/*/likes/me").hasRole("CUSTOMER")
+                .pathMatchers(HttpMethod.POST, "/api/products/*/like", "/api/products/*/reviews").hasRole("CUSTOMER")
+                .pathMatchers(HttpMethod.DELETE, "/api/products/reviews/*").hasRole("CUSTOMER")
                 .pathMatchers("/api/payments/notify","/api/customer/products","/api/customer/context","/api/customer/categories","/api/customer/products/**").permitAll()
                 .pathMatchers("/api/customer/cart/**","/api/customer/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
                 .pathMatchers("/api/vendor/**").hasAnyRole("VENDOR", "ADMIN")

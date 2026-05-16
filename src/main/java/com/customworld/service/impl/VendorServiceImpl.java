@@ -11,9 +11,12 @@ import com.customworld.entity.User;
 import com.customworld.exception.ResourceNotFoundException;
 import com.customworld.repository.CategoryRepository;
 import com.customworld.repository.OrderRepository;
+import com.customworld.repository.ProductLikeRepository;
 import com.customworld.repository.ProductRepository;
+import com.customworld.repository.ProductReviewRepository;
 import com.customworld.repository.UserRepository;
 import com.customworld.service.FileStorageService;
+import com.customworld.service.ProductInteractionService;
 import com.customworld.service.VendorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +45,8 @@ public class VendorServiceImpl implements VendorService {
     private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
     private final FileStorageService fileStorageService;
+    private final ProductLikeRepository likeRepository;
+    private final ProductReviewRepository reviewRepository;
     private static final Logger log = LoggerFactory.getLogger(VendorServiceImpl.class);
 
     public VendorServiceImpl(
@@ -49,13 +54,17 @@ public class VendorServiceImpl implements VendorService {
             UserRepository userRepository,
             CategoryRepository categoryRepository,
             OrderRepository orderRepository,
-            FileStorageService fileStorageService
+            FileStorageService fileStorageService,
+            ProductLikeRepository likeRepository,
+            ProductReviewRepository reviewRepository
     ) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.orderRepository = orderRepository;
         this.fileStorageService = fileStorageService;
+        this.likeRepository = likeRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     @Override
@@ -75,9 +84,7 @@ public class VendorServiceImpl implements VendorService {
                 .vendor(vendor)
                 .imagePath(productRequest.getImagePath())
                 .isNew(productRequest.isNew())
-                .rating(productRequest.getRating())
                 .color(productRequest.getColor())
-                .reviews(productRequest.getReviews())
                 .isOnSale(productRequest.isOnSale())
                 .build();
 
@@ -155,11 +162,8 @@ public class VendorServiceImpl implements VendorService {
         product.setOriginalPrice(productRequest.getOriginalPrice());
         product.setImagePath(productRequest.getImagePath());
         product.setNew(productRequest.isNew());
-        product.setRating(productRequest.getRating());
         product.setColor(productRequest.getColor());
-        product.setReviews(productRequest.getReviews());
         product.setOnSale(productRequest.isOnSale());
-        
 
         product = productRepository.save(product);
         log.info("Product updated: {}", productId);
@@ -240,7 +244,8 @@ public class VendorServiceImpl implements VendorService {
     }
 
     private ProductResponse convertToProductResponse(Product product) {
-        log.info("Converting product to response: {}", product);
+        long likeCount = likeRepository.countByProductId(product.getId());
+        long reviewCount = reviewRepository.countByProductId(product.getId());
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -252,10 +257,13 @@ public class VendorServiceImpl implements VendorService {
                 .imagePath(product.getImagePath())
                 .approved(product.isApproved())
                 .isNew(product.isNew())
-                .rating(product.getRating())
-                .color(product.getColor())
-                .reviews(product.getReviews())
                 .isOnSale(product.isOnSale())
+                .color(product.getColor())
+                .likeCount(likeCount)
+                .reviewCount(reviewCount)
+                .rating(ProductInteractionService.calculateRating(likeCount))
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .build();
     }
 

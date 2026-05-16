@@ -12,6 +12,7 @@ import com.customworld.exception.ResourceNotFoundException;
 import com.customworld.repository.*;
 import com.customworld.service.CustomerService;
 import com.customworld.service.FileStorageService;
+import com.customworld.service.ProductInteractionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +34,8 @@ import org.slf4j.LoggerFactory;
 public  class CustomerServiceImpl implements CustomerService {
 
     private final ProductRepository productRepository;
+    private final ProductLikeRepository likeRepository;
+    private final ProductReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final CustomOrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -43,12 +46,16 @@ public  class CustomerServiceImpl implements CustomerService {
                             CustomOrderRepository orderRepository,
                             ProductRepository productRepository,
                                OrderItemRepository orderItemRepository,
-                               FileStorageService fileStorageService) {
+                               FileStorageService fileStorageService,
+                               ProductLikeRepository likeRepository,
+                               ProductReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.orderItemRepository = orderItemRepository;
         this.fileStorageService = fileStorageService;
+        this.likeRepository = likeRepository;
+        this.reviewRepository = reviewRepository;
     }
     
 
@@ -161,6 +168,8 @@ public  class CustomerServiceImpl implements CustomerService {
      * @return ProductResponse DTO converti
      */
      private ProductResponse convertToProductResponse(Product product) {
+        long likeCount = likeRepository.countByProductId(product.getId());
+        long reviewCount = reviewRepository.countByProductId(product.getId());
         log.info("Converting product to response: {}", product);
         return ProductResponse.builder()
                 .id(product.getId())
@@ -173,10 +182,13 @@ public  class CustomerServiceImpl implements CustomerService {
                 .imagePath(product.getImagePath())
                 .approved(product.isApproved())
                 .isNew(product.isNew())
-                .rating(product.getRating())
                 .color(product.getColor())
-                .reviews(product.getReviews())
+                .likeCount(likeCount)
+                .reviewCount(reviewCount)
+                .rating(ProductInteractionService.calculateRating(likeCount))
                 .isOnSale(product.isOnSale())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .build();
     }
 

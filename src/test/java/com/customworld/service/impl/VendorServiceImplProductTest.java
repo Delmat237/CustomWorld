@@ -9,7 +9,9 @@ import com.customworld.enums.UserRole;
 import com.customworld.exception.ResourceNotFoundException;
 import com.customworld.repository.CategoryRepository;
 import com.customworld.repository.OrderRepository;
+import com.customworld.repository.ProductLikeRepository;
 import com.customworld.repository.ProductRepository;
+import com.customworld.repository.ProductReviewRepository;
 import com.customworld.repository.UserRepository;
 import com.customworld.service.FileStorageService;
 import org.junit.jupiter.api.AfterEach;
@@ -36,13 +38,17 @@ class VendorServiceImplProductTest {
     private final CategoryRepository categoryRepository = mock(CategoryRepository.class);
     private final OrderRepository orderRepository = mock(OrderRepository.class);
     private final FileStorageService fileStorageService = mock(FileStorageService.class);
+    private final ProductLikeRepository likeRepository = mock(ProductLikeRepository.class);
+    private final ProductReviewRepository reviewRepository = mock(ProductReviewRepository.class);
 
     private final VendorServiceImpl vendorService = new VendorServiceImpl(
             productRepository,
             userRepository,
             categoryRepository,
             orderRepository,
-            fileStorageService
+            fileStorageService,
+            likeRepository,
+            reviewRepository
     );
 
     @BeforeEach

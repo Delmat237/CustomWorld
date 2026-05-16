@@ -6,7 +6,9 @@ import com.customworld.entity.Category;
 import com.customworld.repository.CategoryRepository;
 import com.customworld.repository.CustomOrderRepository;
 import com.customworld.repository.DeliveryRepository;
+import com.customworld.repository.ProductLikeRepository;
 import com.customworld.repository.ProductRepository;
+import com.customworld.repository.ProductReviewRepository;
 import com.customworld.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 
@@ -24,12 +26,16 @@ class AdminServiceImplCategoryTest {
     private final ProductRepository productRepository = mock(ProductRepository.class);
     private final DeliveryRepository deliveryRepository = mock(DeliveryRepository.class);
     private final CategoryRepository categoryRepository = mock(CategoryRepository.class);
+    private final ProductLikeRepository likeRepository = mock(ProductLikeRepository.class);
+    private final ProductReviewRepository reviewRepository = mock(ProductReviewRepository.class);
     private final AdminServiceImpl adminService = new AdminServiceImpl(
             userRepository,
             orderRepository,
             productRepository,
             deliveryRepository,
-            categoryRepository
+            categoryRepository,
+            likeRepository,
+            reviewRepository
     );
 
     @Test
